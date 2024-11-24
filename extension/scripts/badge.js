@@ -19,8 +19,8 @@ let selectors = [
     '.studio-project-username'
 ]
 
-const logoUrl2 = document.querySelector('.blocklive-ext-2').dataset.logoUrl;
-const exIdBadges = document.querySelector('.blocklive-ext-2').dataset.exId;
+const logoUrl2 = document.querySelector('.livescratch-ext-2').dataset.logoUrl;
+const exIdBadges = document.querySelector('.livescratch-ext-2').dataset.exId;
 
 async function displayBLUsers2(element) {
     Array.from(element.querySelectorAll(selectors)).forEach(nameElem => {
@@ -52,7 +52,7 @@ async function displayBLUsers2(element) {
                     img.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
                     img.classList.add('blbadge')
                     // img.style.filter = 'drop-shadow(0 4px 2px rgba(0,0,0,0.5))'
-                    img.setAttribute('title', 'This user uses blocklive')
+                    img.setAttribute('title', 'This user uses livescratch')
 
                     console.log(nameElem)
 

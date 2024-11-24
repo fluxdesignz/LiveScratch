@@ -2,19 +2,19 @@
 
 let currentBlToken = null
 async function getCurrentBlToken() {
-    let username = await BLOCKLIVE.refreshUsername()
-    let blToken = await getBlockliveToken(username)
+    let username = await LIVESCRATCH.refreshUsername()
+    let blToken = await getLivescratchToken(username)
     currentBlToken = blToken;
     return blToken
 }
 async function getCurrentBLTokenAfterUsernameRefresh() {
     let username = uname
-    let blToken = await getBlockliveToken(username)
+    let blToken = await getLivescratchToken(username)
     currentBlToken = blToken;
     return blToken
 }
 
-async function getBlockliveToken(username) {
+async function getLivescratchToken(username) {
     username = username?.toLowerCase?.()
     if(!username) {return null}
     let key = `blToken.${username}`;
@@ -40,7 +40,7 @@ async function getVerifyError() {
 }
 
 function clearCurrentBlToken() {
-    storeBlockliveToken(uname,null)
+    storeLivescratchToken(uname,null)
 }
 
 let verifying = false;
@@ -118,13 +118,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         
             console.log('tokenResponse',tokenResponse)
             if(tokenResponse.freepass) {
-                storeBlockliveToken(uname,`freepass ${Date.now()}`,true)
+                storeLivescratchToken(uname,`freepass ${Date.now()}`,true)
                 endVerifying(true)
             } else if(tokenResponse.err) {
                 recordVerifyError(tokenResponse.err)
                 endVerifying(false)
             } else {
-                storeBlockliveToken(tokenResponse.username,tokenResponse.token,true) 
+                storeLivescratchToken(tokenResponse.username,tokenResponse.token,true) 
                 endVerifying(true)
             }
         } catch(e) {
@@ -176,10 +176,10 @@ chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => 
 
 //     let tokenResponse =  await (await fetch(`${apiUrl}/verify/userToken?code=${clientCode}`)).json()
     
-//     storeBlockliveToken(tokenResponse.username,tokenResponse.token)
+//     storeLivescratchToken(tokenResponse.username,tokenResponse.token)
 
 // }
-function storeBlockliveToken(username,token,current) {
+function storeLivescratchToken(username,token,current) {
     username=username?.toLowerCase()
     let toSet = {}
     toSet[`blToken.${username}`] = token

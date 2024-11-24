@@ -1,4 +1,4 @@
-class BlockliveProject {
+class LivescratchProject {
     // projectJSON
     // projectJSONVersion = 0
     version = -1

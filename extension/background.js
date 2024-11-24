@@ -15,21 +15,21 @@ let upk = undefined;
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
     chrome.tabs.create({ url: 'https://buymeacoffee.com/ilhp10' })
-    chrome.tabs.create({ url: 'https://sites.google.com/view/blocklive/home' })
+    chrome.tabs.create({ url: 'https://sites.google.com/view/livescratch/home' })
 
   } else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
 
-    chrome.tabs.create({url:'https://sites.google.com/view/blocklive/new-blocklive-version'})
+    chrome.tabs.create({url:'https://sites.google.com/view/livescratch/new-livescratch-version'})
     // chrome.tabs.create({url:'https://buymeacoffee.com/ilhp10'})
   }
 })
 
 
-const BLOCKLIVE = {}
+const LIVESCRATCH = {}
 async function backgroundScript() {
 
   importScripts('background/socket.io.js');
-  importScripts('background/blockliveProject.js');
+  importScripts('background/livescratchProject.js');
   importScripts('background/auth.js');
 
   // user info
@@ -39,8 +39,8 @@ async function backgroundScript() {
 
   ////////// ACTIVE PROJECTS DATABASE //////////
   // blId -> [ports...]
-  let blockliveTabs = {}
-  // blId -> BlockliveProject
+  let livescratchTabs = {}
+  // blId -> LivescratchProject
   let projects = {}
   // portName -> blId
   let portIds = {}
@@ -74,7 +74,7 @@ async function backgroundScript() {
         method: "PUT",
         headers: { authorization: currentBlToken }
       }) // link scratch project with api
-      tabCallbacks[tab.id]({ meta: 'initBlocklive', blId }); // init blocklive in project tab
+      tabCallbacks[tab.id]({ meta: 'initLivescratch', blId }); // init livescratch in project tab
     }
   }
 
@@ -87,7 +87,7 @@ async function backgroundScript() {
     // dont redirect if is not /projects/id/...
     if (!id) { return false }
     let info = await (await fetch(apiUrl + `/userRedirect/${id}/${uname}`, { headers: { authorization: currentBlToken } })).json()
-    // dont redirect if scratch id is not associated with bl project
+    // dont redirect if scratch id is not associated with ls project
     if (info.goto == 'none') { return false }
     // dont redirect if already on project
     if (info.goto == id) { return false }
@@ -111,9 +111,9 @@ async function backgroundScript() {
 
     // send to local clients
     if (!!optPort) {
-      blockliveTabs[blId]?.forEach((p => { try { if (p != optPort) { p.postMessage(msg) } } catch (e) { console.error(e) } }))
+      livescratchTabs[blId]?.forEach((p => { try { if (p != optPort) { p.postMessage(msg) } } catch (e) { console.error(e) } }))
     } else {
-      blockliveTabs[blId]?.forEach(p => { try { p.postMessage(msg) } catch (e) { console.log(e) } })
+      livescratchTabs[blId]?.forEach(p => { try { p.postMessage(msg) } catch (e) { console.log(e) } })
     }
   }
 
@@ -123,14 +123,14 @@ async function backgroundScript() {
   const URLApiDomain = URLApiUrl.origin
   const URLApiPath = [''].concat(URLApiUrl.pathname.split('/').filter(Boolean)).join('/')
   const socket = io.connect(URLApiDomain, { path: `${URLApiPath}/socket.io/`, jsonp: false, transports: ['websocket', 'xhr-polling', 'polling', 'htmlfile', 'flashsocket'] })
-  BLOCKLIVE.socket = socket
+  LIVESCRATCH.socket = socket
   // const socket = io.connect(apiUrl,{jsonp:false,transports:['websocket']})
   // socket.on("connect_error", () => { socket.io.opts.transports = ["websocket"];});
   console.log('connecting')
   socket.on('connect', async () => {
     console.log('connected with id: ', socket.id)
     ports.forEach(port => port.postMessage({ meta: 'resync' }))
-    let blIds = Object.keys(blockliveTabs)
+    let blIds = Object.keys(livescratchTabs)
     if (blIds.length != 0) { socket.send({ type: 'joinSessions', username: await makeSureUsernameExists(), pk: upk, ids: blIds, token: currentBlToken }) }
   })
   socket.on('disconnect', () => {
@@ -188,14 +188,14 @@ async function backgroundScript() {
 
     return uname
   }
-  BLOCKLIVE.refreshUsername = refreshUsername;
+  LIVESCRATCH.refreshUsername = refreshUsername;
   let verifyBypass = false;
 
   async function testVerification() {
     try {
       let json = await (await fetch(`${apiUrl}/verify/test?username=${uname}`, { headers: { authorization: currentBlToken } })).json()
       if (!json.verified) {
-        storeBlockliveToken(uname, null, true)
+        storeLivescratchToken(uname, null, true)
       }
       verifyBypass = json.bypass
 
@@ -287,18 +287,18 @@ async function backgroundScript() {
       } else if (msg.meta == 'myId') {
         blId = msg.id
         // record websocket id
-        if (!(msg.id in blockliveTabs)) {
-          blockliveTabs[msg.id] = []
+        if (!(msg.id in livescratchTabs)) {
+          livescratchTabs[msg.id] = []
         }
         if (port.name in portIds) { }
         else {
-          blockliveTabs[msg.id].push(port)
+          livescratchTabs[msg.id].push(port)
           portIds[port.name] = msg.id
         }
 
         // create project object
         if (!(msg.id in projects)) {
-          projects[msg.id] = new BlockliveProject()
+          projects[msg.id] = new LivescratchProject()
         }
       } else if (msg.meta == 'joinSession') {
         await makeSureUsernameExists()
@@ -320,14 +320,14 @@ async function backgroundScript() {
           chrome.notifications.create(null,
             {
               type: 'basic',
-              title: `Blocklive Chat`,
+              title: `Livescratch Chat`,
               contextMessage: `${msg.sender} says in '${msg.project}':`,
               message: msg.text,
-              // iconUrl:chrome.runtime.getURL('img/blocklivefullres.png'),
+              // iconUrl:chrome.runtime.getURL('img/livescratchfullres.png'),
               // iconUrl:msg.avatar,
               // iconUrl:'https://assets.scratch.mit.edu/981e22b1b61cad530d91ea2cfd5ccec7.svg',
               // iconUrl:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Red_Circle%28small%29.svg/2048px-Red_Circle%28small%29.svg.png'
-              iconUrl: 'img/blocklivefullres.png'
+              iconUrl: 'img/livescratchfullres.png'
               // isClickable:true,
             },
             (notif) => {
@@ -358,12 +358,12 @@ async function backgroundScript() {
     port.onDisconnect.addListener((p) => {
       console.log('port disconnected', p)
       ports.splice(ports.indexOf(p), 1);
-      let blockliveId = portIds[p.name]
-      let list = blockliveTabs[blockliveId]
-      blockliveTabs[blockliveId].splice(list.indexOf(p), 1);
+      let livescratchId = portIds[p.name]
+      let list = livescratchTabs[livescratchId]
+      livescratchTabs[livescratchId].splice(list.indexOf(p), 1);
       delete portIds[p.name]
       setTimeout(() => {
-        if (blockliveTabs[blockliveId].length == 0) { socket.send({ type: 'leaveSession', id: blockliveId }) }
+        if (livescratchTabs[livescratchId].length == 0) { socket.send({ type: 'leaveSession', id: livescratchId }) }
         if (ports.length == 0) { socket.disconnect() } // Todo: handle disconnecting and reconnecting backend socket
       }, 5000); // leave socket stuff if page doesnt reconnect in 5 seconds
     })
@@ -384,7 +384,7 @@ async function backgroundScript() {
         } else if (request.meta == 'getJson') {
           try {
             sendResponse(await (await fetch(`${apiUrl}/projectJSON/${request.blId}?username=${uname}`, { headers: { authorization: currentBlToken } })).json())
-          } catch (e) { sendResponse({ err: 'blocklive id does not exist' }) }
+          } catch (e) { sendResponse({ err: 'livescratch id does not exist' }) }
         } else if (request.meta == 'getChanges') {
           sendResponse(await (await fetch(`${apiUrl}/changesSince/${request.blId}/${request.version}`, { headers: { authorization: currentBlToken, uname } })).json())
         } else if (request.meta == 'getUsername') {

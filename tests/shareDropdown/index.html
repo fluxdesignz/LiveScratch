@@ -111,7 +111,6 @@ let example = document.querySelector('#example')
 });
 
         earch.oninput = async ()=>{
-            console.log('hi')
             let res
              try{(res=await (await fetch('https://api.scratch.mit.edu/users/' + earch.value,{cors:'no-cors'})).json())} catch(e) {
                  res=null

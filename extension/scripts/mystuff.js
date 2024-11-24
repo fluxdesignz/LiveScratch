@@ -1,7 +1,7 @@
 console.log('mystuff inject started')
 
 // get exId
-const exId = document.querySelector(".blocklive-ext").dataset.exId
+const exId = document.querySelector(".livescratch-ext").dataset.exId
 
 ////////// INJECT UTILS //////////
 
@@ -258,7 +258,7 @@ function getId(listItem) {
 
 
 let oldAttrs = {}
-async function convertToBlocklive(listItem, projectObj) {
+async function convertToLivescratch(listItem, projectObj) {
   let atts = {}
   atts.color = listItem.children[0].children[1].children[0].children[0].style.color
   listItem.children[0].children[1].children[0].children[0].style.color = '#ff4ad5'
@@ -266,7 +266,7 @@ async function convertToBlocklive(listItem, projectObj) {
 
   atts.buttonText = listItem.children[0].children[2].children[0].children[0].innerText
   listItem.children[0].children[2].children[0].children[0].innerText = 'Unlink'
-  listItem.children[0].children[2].children[0].children[0].onclick = (e) => {cleanseOfBlockliveness(projectObj.scratchId, listItem); sendLeave(projectObj.scratchId, projectObj.blId); e.stopPropagation();  }
+  listItem.children[0].children[2].children[0].children[0].onclick = (e) => {cleanseOfLivescratchness(projectObj.scratchId, listItem); sendLeave(projectObj.scratchId, projectObj.blId); e.stopPropagation();  }
   atts.title = listItem.children[0].children[1].children[0].children[0].innerText
   listItem.children[0].children[1].children[0].children[0].innerText = projectObj.title
 
@@ -281,7 +281,7 @@ async function convertToBlocklive(listItem, projectObj) {
 
 
 }
-function cleanseOfBlockliveness(scratchId, listItem) {
+function cleanseOfLivescratchness(scratchId, listItem) {
   let atts = oldAttrs[scratchId]
   if (!atts) { return }
   listItem.children[0].children[1].children[0].children[0].style.color = atts.color
@@ -341,13 +341,13 @@ async function onTabLoad() {
     let toDelete = []
     for (let child of list.children) {
       let scratchId = getId(child)
-      let blockliveProject = blMyStuffMap[scratchId]
-      if (blockliveProject) {
-        if (Date.now() - blockliveProject.lastTime < 1000 * 60 * 60 * 2) { // if project was edited less than 2 hours ago
+      let livescratchProject = blMyStuffMap[scratchId]
+      if (livescratchProject) {
+        if (Date.now() - livescratchProject.lastTime < 1000 * 60 * 60 * 2) { // if project was edited less than 2 hours ago
           toDelete.push(child)
           blProjectDivs[scratchId] = child
         } else {
-          convertToBlocklive(child, blockliveProject)
+          convertToLivescratch(child, livescratchProject)
           delete blMyStuffMap[scratchId]
         }
       }
@@ -365,8 +365,8 @@ async function onTabLoad() {
 
 chrome.runtime.sendMessage(exId, { meta: 'getUsernamePlus' }, async (userData) => {
   if(userData.verifyBypass) {
-    addHideBlockliveButton(false);
-    removeHideBlockliveButton()
+    addHideLivescratchButton(false);
+    removeHideLivescratchButton()
   }
   if (!userData.currentBlToken) {
 
@@ -374,26 +374,26 @@ chrome.runtime.sendMessage(exId, { meta: 'getUsernamePlus' }, async (userData) =
     addStartVerificationCallback(() => {
       document.querySelector('#verifying')?.remove()
       document.querySelector('#unverified')?.remove()
-      document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="verifying" style="background:#ea47ff; color:white;"><img height=15 src="https://upload.wikimedia.org/wikipedia/commons/a/ad/YouTube_loading_symbol_3_%28transparent%29.gif"/> Blocklive is verifying your account ...<div>`)
+      document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="verifying" style="background:#ea47ff; color:white;"><img height=15 src="https://upload.wikimedia.org/wikipedia/commons/a/ad/YouTube_loading_symbol_3_%28transparent%29.gif"/> Livescratch is verifying your account ...<div>`)
     })
     addEndVerificationCallback(async (success, message) => {
       document.querySelector('#verifying')?.remove()
       document.querySelector('#unverified')?.remove()
       if (success) {
         newVerified = true;
-        removeHideBlockliveButton()
+        removeHideLivescratchButton()
         document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="blSuccess" style="background:#77da77; color:white;"> ✅ You're verified! <div>`)
         if (projectLoadFailed) { onTabLoad() }
-        removeHideBlockliveButton()
+        removeHideLivescratchButton()
         setTimeout(() => { document.querySelector('#blSuccess').remove() }, 1000 * 2)
       } else {
-        defaultAddHideBlockliveButton(userData.verifyBypass)
+        defaultAddHideLivescratchButton(userData.verifyBypass)
         let error = await chrome.runtime.sendMessage(exId,{meta:'getVerifyError'})
         // let isBypass = userData.verifyBypass
         if(error=='no cloud') {
-          document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;"><span id="bigx" style="display:none; padding:3px; border-radius:50%; background:lightpink; color:maroon; cursor:pointer;" onclick="document.querySelector('#unverified').remove()">&nbspx&nbsp</span>⚠️ Blocklive could not verify your account because the cloud data 'set' action failed. Scratch's cloud data servers might be down, causing this issue. Click 'hide verify' below to silence this message.`)
+          document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;"><span id="bigx" style="display:none; padding:3px; border-radius:50%; background:lightpink; color:maroon; cursor:pointer;" onclick="document.querySelector('#unverified').remove()">&nbspx&nbsp</span>⚠️ Livescratch could not verify your account because the cloud data 'set' action failed. Scratch's cloud data servers might be down, causing this issue. Click 'hide verify' below to silence this message.`)
         } else {
-          document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;"><span id="bigx" style="display:none; padding:3px; border-radius:50%; background:lightpink; color:maroon; cursor:pointer;" onclick="document.querySelector('#unverified').remove()">&nbspx&nbsp</span>⚠️ Blocklive could not verify your account. Reload the tab in a few seconds. If this issue continues, contact @ilhp10 or @rgantzos <span style="text-decoration:underline; cursor:pointer; color:blue;" onclick="chrome.runtime.sendMessage(exId,{meta:'getVerifyError'},err=>prompt('This error occured during client verification. Comment it on @ilhp10 or @rgantzos profile',err))">See Error Msg</span>`)
+          document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;"><span id="bigx" style="display:none; padding:3px; border-radius:50%; background:lightpink; color:maroon; cursor:pointer;" onclick="document.querySelector('#unverified').remove()">&nbspx&nbsp</span>⚠️ Livescratch could not verify your account. Reload the tab in a few seconds. If this issue continues, contact @ilhp10 or @rgantzos <span style="text-decoration:underline; cursor:pointer; color:blue;" onclick="chrome.runtime.sendMessage(exId,{meta:'getVerifyError'},err=>prompt('This error occured during client verification. Comment it on @ilhp10 or @rgantzos profile',err))">See Error Msg</span>`)
         }
         
       }
@@ -406,21 +406,21 @@ chrome.runtime.sendMessage(exId, { meta: 'getUsernamePlus' }, async (userData) =
       console.log('vf',verifying)
       console.log('verifying',verifying)
       if (verifying=='nocon'){
-        // defaultAddHideBlockliveButton()
+        // defaultAddHideLivescratchButton()
         let apiURL = "";
         chrome.runtime.sendMessage(exId, {meta: 'getAPI-URL'}, (response) => {
           apiURL = response.apiURL;
         });
-        document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;">⚠️ Cant connect to blocklive servers at ${apiURL} <a href="https://status.uptime-monitor.io/6499c89d4bfb79bb5f20ac4d" target="_blank">Check Uptime</a> or <a onclick="(()=>{chrome.runtime.sendMessage(exId,{meta:'dontShowVerifyError',val:false}); addHideBlockliveButton(false);})()">Dont show this message again</a><div>`)
+        document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;">⚠️ Cant connect to livescratch servers at ${apiURL} <a href="https://status.uptime-monitor.io/6499c89d4bfb79bb5f20ac4d" target="_blank">Check Uptime</a> or <a onclick="(()=>{chrome.runtime.sendMessage(exId,{meta:'dontShowVerifyError',val:false}); addHideLivescratchButton(false);})()">Dont show this message again</a><div>`)
       }
       else if (verifying) {
-        defaultAddHideBlockliveButton(userData.verifyBypass)
+        defaultAddHideLivescratchButton(userData.verifyBypass)
         document.querySelector('#verifying')?.remove()
-        document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="verifying" style="background:#ea47ff; color:white;"><img height=15 src="https://upload.wikimedia.org/wikipedia/commons/a/ad/YouTube_loading_symbol_3_%28transparent%29.gif"/> Blocklive is verifying your account ...<div>`)
+        document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="verifying" style="background:#ea47ff; color:white;"><img height=15 src="https://upload.wikimedia.org/wikipedia/commons/a/ad/YouTube_loading_symbol_3_%28transparent%29.gif"/> Livescratch is verifying your account ...<div>`)
       } else {
         if (newVerified) { return }
-        defaultAddHideBlockliveButton(userData.verifyBypass)
-        document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;">⚠️ Blocklive could not verify your account. Reload the tab in a few seconds. If this issue continues, contact @ilhp10 or @rgantzos<div>`)
+        defaultAddHideLivescratchButton(userData.verifyBypass)
+        document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;">⚠️ Livescratch could not verify your account. Reload the tab in a few seconds. If this issue continues, contact @ilhp10 or @rgantzos<div>`)
       }
     })
 
@@ -440,31 +440,31 @@ onTabLoad()
 
 
 var BLVon = false;
-function addHideBlockliveButton(on) {
+function addHideLivescratchButton(on) {
   window.BLVon = on;
   let innerds = on ? 'Hide Verify ^' : 'Show Verify'
   document.getElementById('hideBLButton')?.remove()
   document.querySelector("#main-content > div.action-bar.scroll > div > div").insertAdjacentHTML('afterend', `
     <span class="hideButton" id="hideBLButton" style="text-decoration:underline; cursor:pointer;
-  color:lightblue" onclick="(()=>{chrome.runtime.sendMessage(exId,{meta:'dontShowVerifyError',val:${!on}}); toggleHideBlocklive()})();">${innerds}</span>`);
+  color:lightblue" onclick="(()=>{chrome.runtime.sendMessage(exId,{meta:'dontShowVerifyError',val:${!on}}); toggleHideLivescratch()})();">${innerds}</span>`);
 
   document.getElementById('blBannerCSS')?.remove()
   document.head.insertAdjacentHTML("afterbegin", on ? `<style id="blBannerCSS">.blBanner{display:default}</style>` : `<style id="blBannerCSS">.blBanner{display:none}</style>`)
 
 }
-function toggleHideBlocklive() {
-  addHideBlockliveButton(!BLVon)
+function toggleHideLivescratch() {
+  addHideLivescratchButton(!BLVon)
 }
 let actuallyShown = false;
-function defaultAddHideBlockliveButton(hideButton) {
+function defaultAddHideLivescratchButton(hideButton) {
   if(!hideButton) {actuallyShown = true}
-  chrome.runtime.sendMessage(exId, { meta: 'getShowVerifyError' }, answer => {addHideBlockliveButton(answer);
-    if (hideButton && !actuallyShown) { removeHideBlockliveButton() }
+  chrome.runtime.sendMessage(exId, { meta: 'getShowVerifyError' }, answer => {addHideLivescratchButton(answer);
+    if (hideButton && !actuallyShown) { removeHideLivescratchButton() }
   })
 
 }
-function removeHideBlockliveButton() {
+function removeHideLivescratchButton() {
   document.getElementById('hideBLButton')?.remove()
 }
 
-defaultAddHideBlockliveButton(true) // just to add styles
+defaultAddHideLivescratchButton(true) // just to add styles

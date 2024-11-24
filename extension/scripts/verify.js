@@ -9,7 +9,7 @@ askVerify()
 
 async function setCloudVar(value, AUTH_PROJECTID) { 
   const user = await chrome.runtime.sendMessage({ meta: 'getUsername' });
-  if(user=='*') {return {err:'blocklive thinks you are logged out'}}
+  if(user=='*') {return {err:'livescratch thinks you are logged out'}}
   const connection = new WebSocket("wss://clouddata.scratch.mit.edu");
  
   let setAndClose = new Promise((res) => {
@@ -63,7 +63,7 @@ if (targetNode) { // only add the listener on the logged out page
   const callback = (mutationList, observer) => {
     for (const mutation of mutationList) {
       if (mutation.addedNodes?.[0]?.classList.contains('account-nav')) {
-        console.log('bl login detected')
+        console.log('ls login detected')
         askVerify()
       }
     }

@@ -2,7 +2,7 @@ import fs from 'fs'
 import fsp from 'fs/promises'
 import path, { sep } from 'path';
 import sanitize from 'sanitize-filename';
-import { blocklivePath, lastIdPath, saveMapToFolder, saveMapToFolderAsync, scratchprojectsPath } from './filesave.js';
+import { livescratchPath, lastIdPath, saveMapToFolder, saveMapToFolderAsync, scratchprojectsPath } from './filesave.js';
 import { Blob } from 'node:buffer'
 import { countPopup, countRecent, countRecentRealtime, countRecentShared, countUniquePopup } from './recentUsers.js';
 import { getAuthStats } from './scratch-auth.js';
@@ -19,7 +19,7 @@ const ensureDirectoryExistence = (filePath) => {
 
 const OFFLOAD_TIMEOUT_MILLIS = 45 * 1000 // you get two minutes before the project offloads
 
-class BlockliveProject {
+class LivescratchProject {
 
     // a note on project versioning:
     // a change's version refers to the version that the project is on after a change is played
@@ -27,7 +27,7 @@ class BlockliveProject {
     // the next change to be played must be a client's current blVersion + 1
 
     static fromJSON(json) {
-        let ret = new BlockliveProject(json.title)
+        let ret = new LivescratchProject(json.title)
         Object.entries(json).forEach(entry => {
             ret[entry[0]] = entry[1]
         })
@@ -111,7 +111,7 @@ class BlockliveProject {
     }
 }
 
-class BlockliveClient {
+class LivescratchClient {
     isReady = true;
     username
     socket
@@ -133,7 +133,7 @@ class BlockliveClient {
 
 }
 
-class BlockliveSess {
+class LivescratchSess {
     connectedClients = {}
     project
     id
@@ -233,15 +233,15 @@ class ProjectWrapper {
                 ret[entry[0]] = entry[1]
             }
         })
-        ret.project = BlockliveProject.fromJSON(json.project)
-        ret.session = new BlockliveSess(ret.project, ret.id)
+        ret.project = LivescratchProject.fromJSON(json.project)
+        ret.session = new LivescratchSess(ret.project, ret.id)
         return ret
     }
 
     session
     project
 
-    // blocklive id
+    // livescratch id
     id
     // most recently saved json
     projectJson
@@ -258,7 +258,7 @@ class ProjectWrapper {
     sharedWith = []
 
     chat = []
-    static defaultChat = { sender: 'blocklive', text: 'Welcome! Chat is public, monitored, and filtered. Report inappropriate things to @ilhp10. Drag the top of this chatbox to move it and drag the bottom right to resize it!' }
+    static defaultChat = { sender: 'livescratch', text: 'Welcome! Chat is public, monitored, and filtered. Report inappropriate things to @ilhp10. Drag the top of this chatbox to move it and drag the bottom right to resize it!' }
 
     constructor(owner, scratchId, projectJson, blId, title) {
         if (owner == '&') { return }
@@ -266,8 +266,8 @@ class ProjectWrapper {
         this.owner = owner
         this.projectJson = projectJson
         this.scratchId = scratchId
-        this.project = new BlockliveProject(title)
-        this.session = new BlockliveSess(this.project, this.id)
+        this.project = new LivescratchProject(title)
+        this.session = new LivescratchSess(this.project, this.id)
         this.linkedWith.push({ scratchId, owner })
         this.chat.push(ProjectWrapper.defaultChat)
     }
@@ -288,7 +288,7 @@ class ProjectWrapper {
         this.chat = this.chat.slice(-n)
     }
     serverSendChat(message, from) {
-        if (!from) { from = 'Blocklive' }
+        if (!from) { from = 'Livescratch' }
         let msg = {
             "meta": "chat",
             "msg": {
@@ -345,7 +345,7 @@ class ProjectWrapper {
 
     joinSession(socket, username) {
         if (socket.id in this.session.connectedClients) { return }
-        let client = new BlockliveClient(socket, username)
+        let client = new LivescratchClient(socket, username)
         this.session.addClient(client)
         if (!this.project.lastUser) { this.project.lastUser = username }
     }
@@ -356,7 +356,7 @@ export default class SessionManager {
     toJSON() {
         let ret = {
             // scratchprojects:this.scratchprojects, //todo return only changed projects
-            blocklive: this.blocklive,
+            livescratch: this.livescratch,
             lastId: this.lastId,
         }
         return ret
@@ -367,9 +367,9 @@ export default class SessionManager {
         let ret = new SessionManager();
         // if(ob.scratchprojects) { ret.scratchprojects = ob.scratchprojects; }
         if (ob.lastId) { ret.lastId = ob.lastId; }
-        if (ob.blocklive) {
-            Object.entries(ob.blocklive).forEach(entry => {
-                ret.blocklive[entry[0]] = ProjectWrapper.fromJSON(entry[1]);
+        if (ob.livescratch) {
+            Object.entries(ob.livescratch).forEach(entry => {
+                ret.livescratch[entry[0]] = ProjectWrapper.fromJSON(entry[1]);
             })
         }
 
@@ -382,7 +382,7 @@ export default class SessionManager {
     // map scratch project id's to info objects {owner, blId}
     // scratchprojects = {}
     // id -> ProjectWrapper
-    blocklive = {}
+    livescratch = {}
     socketMap = {}
 
     lastId = 0
@@ -393,7 +393,7 @@ export default class SessionManager {
 
     // Deprecated
     offloadStaleProjects() {
-            Object.entries(this.blocklive).forEach(entry => {
+            Object.entries(this.livescratch).forEach(entry => {
             let project = entry[1]
             let id = entry[0]
             if (Object.keys(project.session.connectedClients).length == 0) {
@@ -403,26 +403,26 @@ export default class SessionManager {
         })
     }
     finalSaveAllProjects() {
-        Object.entries(this.blocklive).forEach(entry => {
+        Object.entries(this.livescratch).forEach(entry => {
             let project = entry[1]
             let id = entry[0]
             project.trimChanges()
         })
-        saveMapToFolder(this.blocklive, blocklivePath)
-        this.blocklive = {}
+        saveMapToFolder(this.livescratch, livescratchPath)
+        this.livescratch = {}
     }
     async finalSaveAllProjectsAsync() {
-        Object.entries(this.blocklive).forEach(entry => {
+        Object.entries(this.livescratch).forEach(entry => {
             let project = entry[1]
             let id = entry[0]
             project.trimChanges()
         })
-        await saveMapToFolderAsync(this.blocklive, blocklivePath,false,true)
-        this.blocklive = {}
+        await saveMapToFolderAsync(this.livescratch, livescratchPath,false,true)
+        this.livescratch = {}
     }
     // Deprecated
     async offloadStaleProjectsAsync() {
-        for (let entry of Object.entries(this.blocklive)) {
+        for (let entry of Object.entries(this.livescratch)) {
             let project = entry[1]
             let id = entry[0]
             if (Object.keys(project.session.connectedClients).length == 0) {
@@ -432,7 +432,7 @@ export default class SessionManager {
         }
     }
     offloadProjectIfStale(id) {
-        let project = this.blocklive[id];
+        let project = this.livescratch[id];
         if (!project) { return }
         if (Object.keys(project.session.connectedClients).length == 0) {
             project.trimChanges()
@@ -444,31 +444,31 @@ export default class SessionManager {
     offloadProject(id) {
         try {
             // console.log('offloading project ' + id)
-            this.blocklive[id]?.trimChanges()
-            let toSaveBlocklive = {}
-            toSaveBlocklive[id] = this.blocklive[id]
-            if (toSaveBlocklive[id]) { // only save it if there is actual data to save
-                saveMapToFolder(toSaveBlocklive, blocklivePath);
+            this.livescratch[id]?.trimChanges()
+            let toSaveLivescratch = {}
+            toSaveLivescratch[id] = this.livescratch[id]
+            if (toSaveLivescratch[id]) { // only save it if there is actual data to save
+                saveMapToFolder(toSaveLivescratch, livescratchPath);
             }
-            delete this.blocklive[id]
+            delete this.livescratch[id]
         } catch (e) { console.error(e) }
     }
     async offloadProjectAsync(id) {
         try {
             // console.log('offloading project ' + id)
-            let toSaveBlocklive = {}
-            toSaveBlocklive[id] = this.blocklive[id]
-            if (toSaveBlocklive[id]) { // only save it if there is actual data to save
-                await saveMapToFolderAsync(toSaveBlocklive, blocklivePath);
+            let toSaveLivescratch = {}
+            toSaveLivescratch[id] = this.livescratch[id]
+            if (toSaveLivescratch[id]) { // only save it if there is actual data to save
+                await saveMapToFolderAsync(toSaveLivescratch, livescratchPath);
             }
-            delete this.blocklive[id]
+            delete this.livescratch[id]
         } catch (e) { console.error(e) }
     }
     reloadProject(id) {
         id = sanitize(id + '')
-        let filename = blocklivePath + path.sep + id;
+        let filename = livescratchPath + path.sep + id;
         let d = null;
-        if (!(id in this.blocklive) && fs.existsSync(filename)) {
+        if (!(id in this.livescratch) && fs.existsSync(filename)) {
             try {
                 d = fs.openSync(filename)
                 let file = fs.readFileSync(d)
@@ -476,8 +476,8 @@ export default class SessionManager {
 
                 let json = JSON.parse(file)
                 let project = ProjectWrapper.fromJSON(json);
-                this.blocklive[id] = project
-                console.log('reloaded blocklive ' + id)
+                this.livescratch[id] = project
+                console.log('reloaded livescratch ' + id)
 
 
             } catch (e) {
@@ -494,15 +494,15 @@ export default class SessionManager {
     async reloadProjectAsync(id) {
 
         id = sanitize(id + '')
-        if (!(id in this.blocklive)) {
+        if (!(id in this.livescratch)) {
             try {
 
-                let file = await fsp.readFile(blocklivePath + path.sep + id)
+                let file = await fsp.readFile(livescratchPath + path.sep + id)
 
                 let json = JSON.parse(file)
                 let project = ProjectWrapper.fromJSON(json);
-                this.blocklive[id] = project
-                console.log('reloaded blocklive ' + id)
+                this.livescratch[id] = project
+                console.log('reloaded livescratch ' + id)
             } catch (e) {
                 // if(!id) {return}
                 console.error("reloadProject: couldn't read project with id: " + id + ". err msg: ", e)
@@ -523,7 +523,7 @@ export default class SessionManager {
         if (this.doesScratchProjectEntryExist(scratchId)) { return this.getProject(this.getScratchProjectEntry(scratchId).blId) }
         let id = String(this.getNextId())
         let project = new ProjectWrapper(owner, scratchId, json, id, title)
-        this.blocklive[id] = project
+        this.livescratch[id] = project
         this.makeScratchProjectEntry(scratchId, owner, id)
         // this.scratchprojects[scratchId] = {owner,blId:id}
 
@@ -588,9 +588,9 @@ export default class SessionManager {
     }
 
     // todo checking
-    attachScratchProject(scratchId, owner, blockliveId) {
-        this.makeScratchProjectEntry(scratchId, owner, blockliveId)
-        // this.scratchprojects[scratchId] = {owner,blId:blockliveId}
+    attachScratchProject(scratchId, owner, livescratchId) {
+        this.makeScratchProjectEntry(scratchId, owner, livescratchId)
+        // this.scratchprojects[scratchId] = {owner,blId:livescratchId}
     }
 
     offloadTimeoutIds = {}
@@ -607,12 +607,12 @@ export default class SessionManager {
     getProject(blId) {
         this.renewOffloadTimeout(blId)
         this.reloadProject(blId)
-        return this.blocklive[blId]
+        return this.livescratch[blId]
     }
     async getProjectAsync(blId) { // untested attempt to avoid too many files open in node version 17.9.1
         this.renewOffloadTimeout(blId)
         await this.reloadProject(blId)
-        return this.blocklive[blId]
+        return this.livescratch[blId]
     }
     shareProject(id, user, pk) {
         console.log(`sessMngr: sharing ${id} with ${user} (usrId ${pk})`)
@@ -655,7 +655,7 @@ export default class SessionManager {
         console.log(`deleting 🚮 project file with id ${id}`)
 
         this.offloadProject(id)
-        let projectPath = blocklivePath + path.sep + sanitize(id)
+        let projectPath = livescratchPath + path.sep + sanitize(id)
         if (fs.existsSync(projectPath)) {
             try { fs.rmSync(projectPath) } catch (e) { console.error('error when deleting project file after unsharing with everyone', e) }
         }
@@ -704,9 +704,9 @@ export default class SessionManager {
         fs.rmSync(filename);
     }
 
-    // if 'from' is null, defaults to 'Blocklive'
+    // if 'from' is null, defaults to 'Livescratch'
     broadcastMessageToAllActiveProjects(message, from) {
-        Object.entries(this.blocklive).forEach(entry => {
+        Object.entries(this.livescratch).forEach(entry => {
             let id = entry[0];
             let project = entry[1];
 
@@ -761,7 +761,7 @@ export default class SessionManager {
                 num: 0,
             }
         }
-        Object.entries(this.blocklive).forEach(entry => {
+        Object.entries(this.livescratch).forEach(entry => {
             let id = entry[0];
             let project = entry[1];
 
@@ -821,7 +821,7 @@ export default class SessionManager {
         stats.popup1month = countPopup(30);
         stats.popupUnique24hr = countUniquePopup(1)
         stats.popupUnique1week = countUniquePopup(7);
-        stats.monthlyProjects = fs.readdirSync(blocklivePath).length
+        stats.monthlyProjects = fs.readdirSync(livescratchPath).length
         stats.monthlyScratchIds = fs.readdirSync(scratchprojectsPath).length
 
         stats.auth = getAuthStats();

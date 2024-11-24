@@ -4,7 +4,7 @@ import path from 'path';
 import sanitize from 'sanitize-filename';
 import clone from 'clone'
 
-export const blocklivePath = 'storage/sessions/blocklive'
+export const livescratchPath = 'storage/sessions/livescratch'
 export const scratchprojectsPath = 'storage/sessions/scratchprojects'
 export const lastIdPath = 'storage/sessions/lastId'
 export const usersPath = 'storage/users'

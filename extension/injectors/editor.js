@@ -3,7 +3,7 @@ console.log("injecting editor.js");
 // alert(chrome.runtime.id)
 let scriptElem = document.createElement("script");
 scriptElem.dataset.exId = chrome.runtime.id
-scriptElem.classList.add("blocklive-ext")
+scriptElem.classList.add("livescratch-ext")
 let srcThign = chrome.runtime.getURL("/scripts/editor.js");
 
 scriptElem.src = srcThign;

@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html>
     <body>
-      <bl-chat id="bl-chat">
-        <bl-chat-head id="bl-chat-banner">
-            <bl-chat-head-text>Live Chat</bl-chat-head-text>
-            <bl-chat-head-filler></bl-chat-head-filler>
-            <bl-chat-head-x onclick="toggleChat(false)">+</bl-chat-head-x>
-        </bl-chat-head>
-        <bl-chat-msgs>
-            <bl-msg-space></bl-msg-space>
-        </bl-chat-msgs>
-        <bl-chat-send>
-            <bl-chat-input contenteditable="true"></bl-chat-input>
-            <bl-chat-send-button>⬆</bl-chat-send-button>
-        </bl-chat-send>
+      <ls-chat id="ls-chat">
+        <ls-chat-head id="ls-chat-banner">
+            <ls-chat-head-text>Live Chat</ls-chat-head-text>
+            <ls-chat-head-filler></ls-chat-head-filler>
+            <ls-chat-head-x onclick="toggleChat(false)">+</ls-chat-head-x>
+        </ls-chat-head>
+        <ls-chat-msgs>
+            <ls-msg-space></ls-msg-space>
+        </ls-chat-msgs>
+        <ls-chat-send>
+            <ls-chat-input contenteditable="true"></ls-chat-input>
+            <ls-chat-send-button>⬆</ls-chat-send-button>
+        </ls-chat-send>
 
-      </bl-chat>
+      </ls-chat>
 
 
-      <div class="bl-chat-toggle-button">
+      <div class="ls-chat-toggle-button">
     <span class="textbubbleemoji" onclick="toggleChat()">💬</span>
       </div>
     </body>
@@ -32,7 +32,7 @@ html{
 .textbubbleemoji{
     font-size: 27px;
 }
-.bl-chat-toggle-button{
+.ls-chat-toggle-button{
     user-select: none;
     display: flex;
     justify-content: center;
@@ -44,7 +44,7 @@ html{
     background-color: rgb(255, 255, 255);
     transition: 0.2s;
 }
-.bl-chat-toggle-button:hover{
+.ls-chat-toggle-button:hover{
     box-shadow: 0 0 15px 0 rgba(255, 0, 208, 0.8);
 }
 
@@ -52,8 +52,8 @@ html{
 .mymsg{
     align-self: flex-end;
 }
-bl-msg-space{height:20px}
-bl-msg{
+ls-msg-space{height:20px}
+ls-msg{
     border:solid rgba(0, 0, 0, 0.189);
     border-radius: 10px;
     padding: 5px;
@@ -61,16 +61,16 @@ bl-msg{
     margin-left: 15px;
     background-color: rgb(255, 255, 255);
 }
-bl-msg-sender-name{
+ls-msg-sender-name{
     font-style:italic;
     color:rgb(73, 73, 73);
 }
-bl-msg-sender{
+ls-msg-sender{
     display: flex;
     flex-direction: row;
     gap:5px;
 }
-bl-msg-sender-img{
+ls-msg-sender-img{
     background-image: url(https://uploads.scratch.mit.edu/get_image/user/5097744_60x60.png);
     background-size: contain;
     width:25px;
@@ -78,7 +78,7 @@ bl-msg-sender-img{
     border-radius: 10px;
 }
 
-bl-chat-send-button{
+ls-chat-send-button{
     user-select: none;
     min-width: 34px;
     height: 34px;
@@ -91,10 +91,10 @@ bl-chat-send-button{
 
     transition: 0.2s scale;
 }
-bl-chat-send-button:hover{
+ls-chat-send-button:hover{
     scale: 112%;
 }
-bl-chat-send{
+ls-chat-send{
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -105,7 +105,7 @@ bl-chat-send{
     /* max-height:150px; */
 }
 
-bl-chat-input{
+ls-chat-input{
     flex-grow: 1;
     border-radius: 16px;
     box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.4);
@@ -122,11 +122,11 @@ bl-chat-input{
 
     /* text-align: center; */
 }
-bl-chat-input:focus{
+ls-chat-input:focus{
     outline: none;
 }
 
-bl-chat-msgs{
+ls-chat-msgs{
     display: flex;
     flex-shrink:1;
     flex-direction: column;
@@ -145,10 +145,10 @@ bl-chat-msgs{
     gap:3px;
     align-items: flex-start;
 }
-bl-chat-msgs::-webkit-scrollbar { width: 0 !important }
-bl-chat-msgs { overflow: -moz-scrollbars-none; }
+ls-chat-msgs::-webkit-scrollbar { width: 0 !important }
+ls-chat-msgs { overflow: -moz-scrollbars-none; }
 
-bl-chat-head-x{
+ls-chat-head-x{
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 22px;
     transform: rotate(45deg);
@@ -165,21 +165,21 @@ bl-chat-head-x{
     color:white;
     transition: 0.2s scale;
 }
-bl-chat-head-x:hover{
+ls-chat-head-x:hover{
     scale: 112%;
 }
-bl-chat-head-filler{
+ls-chat-head-filler{
     display: flex;
     flex-grow:1;
 }
-bl-chat-head-text{
+ls-chat-head-text{
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-weight: bold;
     font-size: 20px;
     margin-left: 20px;
     color:white;
 }
-bl-chat-head {
+ls-chat-head {
     user-select: none;
     display: flex;
     flex-direction: row;
@@ -193,7 +193,7 @@ bl-chat-head {
     box-shadow: 0px 0px 21px 0px rgba(0,0,0,0.5);
 }
 
-bl-chat{
+ls-chat{
     position: absolute;
     border-radius: 20px;
 
@@ -213,7 +213,7 @@ bl-chat{
 </style>
 
 <script>
-    let chatbox = document.querySelector('bl-chat')
+    let chatbox = document.querySelector('ls-chat')
 dragElement(chatbox)
 // chatbox.style.scale = '80%'
 
@@ -264,31 +264,31 @@ function dragElement(elmnt) {
 lastSender = ''
 uname = 'ilhp10'
 function addMessage(msg) {
-    let msgsElem = document.querySelector('bl-chat-msgs')
+    let msgsElem = document.querySelector('ls-chat-msgs')
     if(msg.sender != lastSender) {
-        let unameElem = document.createElement('bl-msg-sender')
+        let unameElem = document.createElement('ls-msg-sender')
         unameElem.innerHTML = `
-        <bl-msg-sender-img></bl-msg-sender-img>
-        <bl-msg-sender-name>${msg.sender}</bl-msg-sender-name>`
+        <ls-msg-sender-img></ls-msg-sender-img>
+        <ls-msg-sender-name>${msg.sender}</ls-msg-sender-name>`
         lastSender = msg.sender
         if(msg.sender == uname) {unameElem.classList.add('mymsg')}
         msgsElem.appendChild(unameElem)
     }
-    let msgElem = document.createElement('bl-msg')
+    let msgElem = document.createElement('ls-msg')
     msgElem.innerText = msg.text 
     if(msg.sender == uname) {msgElem.classList.add('mymsg')}
     msgsElem.appendChild(msgElem)
 }
-document.querySelector('bl-chat-input').addEventListener('keydown',(e)=>{
+document.querySelector('ls-chat-input').addEventListener('keydown',(e)=>{
     if(e.keyCode == 13) {
         postMessageBubble()
         e.preventDefault()
     }
 })
-document.querySelector('bl-chat-send-button').onclick = postMessageBubble
+document.querySelector('ls-chat-send-button').onclick = postMessageBubble
 
 function postMessageBubble() {
-    let inputElem = document.querySelector('bl-chat-input')
+    let inputElem = document.querySelector('ls-chat-input')
     let messageText = inputElem.innerText
     messageText = messageText.trim()
     if(messageText=='') {return}
@@ -301,7 +301,7 @@ function postMessageBubble() {
 }
 
 function toggleChat(state) {
-    let chatbox = document.querySelector('bl-chat')
+    let chatbox = document.querySelector('ls-chat')
     if(state===undefined) {
         chatbox.style.visibility = chatbox.style.visibility=='hidden' ? 'visible' : 'hidden'
     } else {

@@ -1,6 +1,6 @@
 /// for some reason this causes a ton of issues :/
 
-import { blocklivePath, scratchprojectsPath } from './filesave.js'
+import { livescratchPath, scratchprojectsPath } from './filesave.js'
 import fs from 'fs'
 import cron from 'node-cron'
 import { sep } from 'path';
@@ -29,7 +29,7 @@ const HOW_OLD_DAYS = 60; // delete projects with no new edits in the last this n
 const CRON_EXPRESSION = '0 2 * * *'; // every night at 2am
 
 async function removeOldProjectsAsync(sessionManager, userManager) {
-    fs.readdir(blocklivePath, async (err, files) => {
+    fs.readdir(livescratchPath, async (err, files) => {
         console.log('removal test started', files)
         for (let id of files) {
             await sleep(55) // rate limit might fix issues??????? IM LOSSTTTTTTTT!!!
@@ -39,7 +39,7 @@ async function removeOldProjectsAsync(sessionManager, userManager) {
                 let project = sessionManager.getProject(id)
                 if (!project) {
                     console.log('project doesnt exist, DELETING id ' + id)
-                    sessionManager.deleteProjectFile(id); // WARNING- WILL DELETE ALL PROJECTS IF TOO MANY FILES ARE OPEN. CONSIDER REMOVING THIS LINE IN THE FUTURE WHEN BLOCKLIVE HAS TOO MANY FOLKS
+                    sessionManager.deleteProjectFile(id); // WARNING- WILL DELETE ALL PROJECTS IF TOO MANY FILES ARE OPEN. CONSIDER REMOVING THIS LINE IN THE FUTURE WHEN LIVESCRATCH HAS TOO MANY FOLKS
                 } //todo check if project not existing messes up delete function
                 else { // if project does exist
                     id = project.id; // since we know that project.id exists

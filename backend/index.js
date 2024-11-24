@@ -27,7 +27,7 @@ import fs from 'fs'
 import { ppid } from 'process';
 import sanitize from 'sanitize-filename';
 
-import { blocklivePath, lastIdPath, loadMapFromFolder, saveMapToFolder, saveMapToFolderAsync, scratchprojectsPath, usersPath} from './filesave.js'
+import { livescratchPath, lastIdPath, loadMapFromFolder, saveMapToFolder, saveMapToFolderAsync, scratchprojectsPath, usersPath} from './filesave.js'
 import { Filter } from './profanity-filter.js';
 import { postText } from './discord-webhook.js';
 import { installCleaningJob } from './removeOldProjects.js';
@@ -36,15 +36,15 @@ import {setPaths, authenticate, freePassesPath, freePasses} from './scratch-auth
 const admin = JSON.parse(process.env.ADMIN);
 
 
-const restartMessage = 'The Blocklive server is restarting. You will lose connection for a few seconds.'
+const restartMessage = 'The Livescratch server is restarting. You will lose connection for a few seconds.'
 // Load session and user manager objects
 
 
 /// LOAD SESSION MANAGER
 // todo: build single recursive directory to object parsing function
 let sessionsObj = {}
-// sessionsObj.blocklive = loadMapFromFolder('storage/sessions/blocklive');
-sessionsObj.blocklive = {};
+// sessionsObj.livescratch = loadMapFromFolder('storage/sessions/livescratch');
+sessionsObj.livescratch = {};
 // sessionsObj.scratchprojects = loadMapFromFolder('storage/sessions/scratchprojects');
 sessionsObj.lastId = fs.existsSync('storage/sessions/lastId') ? parseInt(fs.readFileSync('storage/sessions/lastId').toString()) : 0
 let banned = fs.existsSync('storage/banned') ? fs.readFileSync('storage/banned').toString().split('\n') : []
@@ -62,7 +62,7 @@ var userManager = new UserManager()
 setPaths(app,userManager,sessionManager)
 
 // share projects from sessions db in users db
-// Object.values(sessionManager.blocklive).forEach(proj=>{
+// Object.values(sessionManager.livescratch).forEach(proj=>{
 //      let owner = proj.owner;
 //      let sharedWith = proj.sharedWith;
 //      sharedWith.forEach(person=>{
@@ -88,10 +88,10 @@ async function saveAsync() {
      await fsp.writeFile(lastIdPath,(sessionManager.lastId).toString());
      await fsp.writeFile(freePassesPath,JSON.stringify(freePasses))
 
-     // DONT SAVE BLOCKLIVE PROJECTS BECAUSE ITS TOO TAXING AND IT HAPPENS ANYWAYS ON OFFLOAD
-     // console.log('writing blocklives')
-     // await saveMapToFolderAsync(sessionManager.blocklive,blocklivePath,true);
-     // console.log('DONE writing blocklives')
+     // DONT SAVE LIVESCRATCH PROJECTS BECAUSE ITS TOO TAXING AND IT HAPPENS ANYWAYS ON OFFLOAD
+     // console.log('writing livescratchs')
+     // await saveMapToFolderAsync(sessionManager.livescratch,livescratchPath,true);
+     // console.log('DONE writing livescratchs')
      // await saveMapToFolderAsync(userManager.users,usersPath);
      await saveRecent();
 }
@@ -115,7 +115,7 @@ async function finalSave() {
           isFinalSaving = false;
      }
 }
-saveMapToFolder(sessionManager.blocklive,blocklivePath)
+saveMapToFolder(sessionManager.livescratch,livescratchPath)
 
 async function saveLoop() {
      while(true) {
@@ -297,7 +297,7 @@ app.get('/scratchIdInfo/:scratchId',(req,res)=>{
      if (sessionManager.doesScratchProjectEntryExist(req.params.scratchId)) {
           res.send(sessionManager.getScratchProjectEntry(req.params.scratchId))
      } else {
-          res.send({err:('could not find blocklive project associated with scratch project id: ' + req.params.scratchId)})
+          res.send({err:('could not find livescratch project associated with scratch project id: ' + req.params.scratchId)})
      }
 })
 // todo: sync info and credits with this endpoint as well?
@@ -306,7 +306,7 @@ app.get('/projectTitle/:id',(req,res)=>{
 
      let project = sessionManager.getProject(req.params.id)
      if(!project) {
-          res.send({err:'could not find project with blocklive id: ' + req.params.id})
+          res.send({err:'could not find project with livescratch id: ' + req.params.id})
      } else {
           res.send({title:project.project.title})
      }
@@ -358,7 +358,7 @@ app.use('/html',express.static('static'))
 //           }
 
 //      } else {
-//           res.send({err:('could not find blocklive project associated with scratch project id: ' + req.params.scratchId)})
+//           res.send({err:('could not find livescratch project associated with scratch project id: ' + req.params.scratchId)})
 //      }
 // })
 app.get('/changesSince/:id/:version',(req,res)=>{
@@ -515,7 +515,7 @@ app.get('/friends/:user',(req,res)=>{
      res.send(userManager.getUser(req.params.user)?.friends)
 })
 
-// get list of blocklive id's shared TO user (from another user)
+// get list of livescratch id's shared TO user (from another user)
 app.get('/userProjects/:user',(req,res)=>{
      if(!authenticate(req.params.user,req.headers.authorization)) {res.send({noauth:true}); return;}
 
@@ -525,8 +525,8 @@ app.get('/userProjects/:user',(req,res)=>{
 app.get('/userProjectsScratch/:user',(req,res)=>{
      if(!authenticate(req.params.user,req.headers.authorization)) {res.send({noauth:true}); return;}
 
-     let blockliveIds = userManager.getAllProjects(req.params.user)
-     let projectsList = blockliveIds.map(id=>{
+     let livescratchIds = userManager.getAllProjects(req.params.user)
+     let projectsList = livescratchIds.map(id=>{
           let projectObj = {}
           let project = sessionManager.getProject(id)
           if(!project) {return null}
@@ -571,7 +571,7 @@ app.get('/share/:id',(req,res)=>{
      let list = project?.sharedWith
      if(!list) {res.send('yeet yeet'); return;}
      list = list.map(name=>({username:name,pk:userManager.getUser(name).pk})) // Add user ids for profile pics
-     res.send(list ? [{username:project.owner,pk:userManager.getUser(project.owner).pk}].concat(list) : {err:'could not find blocklive project: ' + req.params.id} )
+     res.send(list ? [{username:project.owner,pk:userManager.getUser(project.owner).pk}].concat(list) : {err:'could not find livescratch project: ' + req.params.id} )
 })
 app.put('/share/:id/:to/:from',(req,res)=>{
      if(!fullAuthenticate(req.params.from,req.headers.authorization,req.params.id)) {res.send({noauth:true}); return;}

@@ -122,7 +122,7 @@ chrome.runtime.sendMessage({ meta: "getUsernamePlus" }, function (info) {
 });
 
 function showNoAuthMessage() {
-    document.querySelector('#friends').innerHTML = `<div style="color:red; text-align:center; font-size: medium; padding:10px; justify-self:center;"><span style="background:white;">You're not verified with blocklive. <br> <br> To verify, open scratch in a new tab and wait for 10 seconds. <br><br> If you're still not verified, contact @ilhp10 or @rgantzos </span></div>`
+    document.querySelector('#friends').innerHTML = `<div style="color:red; text-align:center; font-size: medium; padding:10px; justify-self:center;"><span style="background:white;">You're not verified with livescratch. <br> <br> To verify, open scratch in a new tab and wait for 10 seconds. <br><br> If you're still not verified, contact @ilhp10 or @rgantzos </span></div>`
 
 }
 

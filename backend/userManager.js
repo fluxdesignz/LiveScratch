@@ -2,7 +2,7 @@
 //  friends LIST of STRING
 //  projects owned by user LIST of 
 //  projects shared to user LIST
-//     > blocklive id
+//     > livescratch id
 //     > from user
 //  scratch id (pk- "primary key")
 //

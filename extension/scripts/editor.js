@@ -1,6 +1,6 @@
 console.log('CollabLive Editor Inject Running...')
 // get exId
-const exId = document.querySelector(".blocklive-ext").dataset.exId
+const exId = document.querySelector(".livescratch-ext").dataset.exId
 let apiUrl = "";
 chrome.runtime.sendMessage(exId, {meta: 'getAPI-URL'}, function(response){
     apiUrl = response.apiURL;
@@ -22,7 +22,7 @@ let finishedSavingCB = []
 function mutationCallback() {
     if(typeof BL_UTILS == 'object'){
         if(!BL_UTILS.isDragging() && playAfterDragStop.length > 0) {
-            playAfterDragStop.forEach(msg=>{blockliveListener(msg)})
+            playAfterDragStop.forEach(msg=>{livescratchListener(msg)})
             playAfterDragStop = []
         }
     }
@@ -75,7 +75,7 @@ var port
 var isConnected = false;
 
 function liveMessage(message,res) {
-    if(blockliveDeleted) {return}
+    if(livescratchDeleted) {return}
     reconnectIfNeeded()
     let msg = message
     if(msg.meta=="blockly.event" || msg.meta=="sprite.proxy"||msg.meta=="vm.blockListen"||msg.meta=="vm.shareBlocks" ||msg.meta=="vm.replaceBlocks" ||msg.meta=="vm.updateBitmap"||msg.meta=="vm.updateSvg" ||msg.meta=="version++") {
@@ -84,11 +84,11 @@ function liveMessage(message,res) {
     port.postMessage(message,res)
 }
 
-let blockliveListener
+let livescratchListener
 
 let registerChromePortListeners = ()=> {
-    if(blockliveDeleted) {return}
-    port.onMessage.addListener((...args)=>{blockliveListener(...args)});
+    if(livescratchDeleted) {return}
+    port.onMessage.addListener((...args)=>{livescratchListener(...args)});
     port.onDisconnect.addListener(()=>{
         isConnected = false;
     })
@@ -96,7 +96,7 @@ let registerChromePortListeners = ()=> {
 // registerChromePortListeners()
 
 function reconnectIfNeeded() {
-    if(blockliveDeleted) {return}
+    if(livescratchDeleted) {return}
     if(!isConnected) {
         port = chrome.runtime.connect(exId); 
         isConnected = (!!port); 
@@ -109,9 +109,9 @@ function reconnectIfNeeded() {
     }
 }
 
-///.......... BLOCKLIVE CHECKING ........... //
+///.......... LIVESCRATCH CHECKING ........... //
 
-var blockliveServer
+var livescratchServer
 
 
 let blId = ''
@@ -125,24 +125,24 @@ let vm
 let readyToRecieveChanges = false
 
 let reloadAfterRestart=false
-async function startBlocklive(creatingNew) {
-    blockliveDeleted=false;
+async function startLivescratch(creatingNew) {
+    livescratchDeleted=false;
     pauseEventHandling = true
     liveMessage({meta:"myId",id:blId})
     injectLoadingOverlay()
 
-    activateBlocklive()
+    activateLivescratch()
     setTopbarButtonVisibility()
     
     if(creatingNew || store.getState().scratchGui.projectState.loadingState.startsWith('SHOWING')) {
         console.log('project already loaded!')
         if(projectReplaceInitiated) { return }
-        await joinExistingBlocklive(blId)
+        await joinExistingLivescratch(blId)
         pauseEventHandling = false;
     } else {
         vm.runtime.on("PROJECT_LOADED", async () => { // todo catch this running after project loads
             if(projectReplaceInitiated) { return }
-            await joinExistingBlocklive(blId)
+            await joinExistingLivescratch(blId)
             pauseEventHandling = false;
         })
     }
@@ -152,7 +152,7 @@ async function startBlocklive(creatingNew) {
     }
 }
 
-let blockliveDeleted=false;
+let livescratchDeleted=false;
 async function onTabLoad() {
     // Get usable scratch id
     // await waitFor(()=>{!isNaN(parseFloat(location.pathname.split('/')[2]))})
@@ -166,32 +166,32 @@ async function onTabLoad() {
     addButtonInjectors()
     blId = isNaN(parseFloat(location.pathname.split('/')[2])) ? '' : await getBlocklyId(scratchId); //todo: should this use the result of the getBlId function, or a more specific endpoint to authenticating project joining?
     if(!blId) {
-        chrome.runtime.sendMessage(exId,{meta:'callback'},(request) => { if(request.meta == 'initBlocklive') { 
+        chrome.runtime.sendMessage(exId,{meta:'callback'},(request) => { if(request.meta == 'initLivescratch') { 
             blId = request.blId; 
-            startBlocklive(true);}});
+            startLivescratch(true);}});
     }
     if(!!blId) {
-        startBlocklive()
+        startLivescratch()
     } else {
     }
 
 }
 onTabLoad()
 
-async function joinExistingBlocklive(id) {
+async function joinExistingLivescratch(id) {
     projectReplaceInitiated = true
-    console.log('joining blocklive id',id,)
+    console.log('joining livescratch id',id,)
     startBLLoadingAnimation()
     // let inpoint = await getInpoint(id)
     let inpoint = await getJson(id)
 
     let projectJson = inpoint.json;
     if(inpoint.err) {
-        alert('issue joining blocklive id: ' + id + '\n error: ' + inpoint.err);
+        alert('issue joining livescratch id: ' + id + '\n error: ' + inpoint.err);
         finishBLLoadingAnimation();
         pauseEventHandling = false;
         vm.refreshWorkspace();
-        removeBlockliveButtons()
+        removeLivescratchButtons()
         return;
     }
     pauseEventHandling = true
@@ -203,9 +203,9 @@ async function joinExistingBlocklive(id) {
         blVersion = inpoint.version
     } catch (e) {
         finishBLLoadingAnimation()
-        prompt(`Scratch couldn't load the project JSON we had saved for this project. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \nError: \n${e} \n\nSend this blocklive id to @ilhp10 on scratch:`,`${blId};`)
+        prompt(`Scratch couldn't load the project JSON we had saved for this project. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \nError: \n${e} \n\nSend this livescratch id to @ilhp10 on scratch:`,`${blId};`)
         startBLLoadingAnimation()
-        // prompt(`Blocklive cannot load project data! The scratch api might be blocked by your network. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \n\nHere are your ids if you want to report this to @ilhp10:`,`BLOCKLIVE_ID: ${blId}; SCRATCH_REAL_ID: ${scratchId}; INPOINT_ID: ${inpoint.scratchId}`)
+        // prompt(`Livescratch cannot load project data! The scratch api might be blocked by your network. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \n\nHere are your ids if you want to report this to @ilhp10:`,`LIVESCRATCH_ID: ${blId}; SCRATCH_REAL_ID: ${scratchId}; INPOINT_ID: ${inpoint.scratchId}`)
     }
     //yo wussup poochdawg
 
@@ -221,24 +221,24 @@ async function joinExistingBlocklive(id) {
 
 }
 
-function unshareBlocklive() {
+function unshareLivescratch() {
     chrome.runtime.sendMessage(exId,{meta:'leaveScratchId',scratchId});
-    removeBlockliveButtons();
-    blockliveDeleted=true;
+    removeLivescratchButtons();
+    livescratchDeleted=true;
     port.disconnect()
 }
 
-function removeBlockliveButtons() {
+function removeLivescratchButtons() {
     try{
 
-        // document.querySelector("#app > div > div.gui_menu-bar-position_3U1T0.menu-bar_menu-bar_JcuHF.box_box_2jjDp > div.menu-bar_main-menu_3wjWH > blocklivecontainer")?.remove()
+        // document.querySelector("#app > div > div.gui_menu-bar-position_3U1T0.menu-bar_menu-bar_JcuHF.box_box_2jjDp > div.menu-bar_main-menu_3wjWH > livescratchcontainer")?.remove()
         document.querySelector("#blRevert")?.remove()
         document.querySelector("#noRefreshPanel")?.remove()
         document.querySelector("#blUsersPanel")?.remove()
-        document.querySelector("#bl-chat")?.remove()
+        document.querySelector("#ls-chat")?.remove()
 
         blDropdown.style.display = 'none';
-        blockliveButton.onclick = blActivateClick
+        livescratchButton.onclick = blActivateClick
         blId=null;
 
     } catch(e) {console.error(e)}
@@ -249,11 +249,11 @@ function getBlocklyId(scratchId) {
     chrome.runtime.sendMessage(exId,{meta:'getBlId',scratchId},promRes)
     })
 }
-// function getInpoint(blockliveId) {
-//     return new Promise((res)=>{chrome.runtime.sendMessage(exId,{meta:'getInpoint',blId:blockliveId},res)})     
+// function getInpoint(livescratchId) {
+//     return new Promise((res)=>{chrome.runtime.sendMessage(exId,{meta:'getInpoint',blId:livescratchId},res)})     
 // }
-function getJson(blockliveId) {
-    return new Promise((res)=>{chrome.runtime.sendMessage(exId,{meta:'getJson',blId:blockliveId},res)})     
+function getJson(livescratchId) {
+    return new Promise((res)=>{chrome.runtime.sendMessage(exId,{meta:'getJson',blId:livescratchId},res)})     
 }
 function getChanges(blId,version) {
     return new Promise((res)=>{chrome.runtime.sendMessage(exId,{meta:'getChanges',blId,version},res)})
@@ -275,7 +275,7 @@ function setTopbarButtonVisibility() {
 
 let getAndPlayNewChanges
 
-async function activateBlocklive() {
+async function activateLivescratch() {
 
     addChat() 
 
@@ -285,7 +285,7 @@ async function activateBlocklive() {
 
         pauseEventHandling = true
         for (let i = 0; i < changes.length; i++) {
-            await blockliveListener(changes[i])
+            await livescratchListener(changes[i])
         }
         if(changes.currentVersion){blVersion = changes.currentVersion}
         pauseEventHandling = false
@@ -319,7 +319,7 @@ async function activateBlocklive() {
 
 function connectFirstTime() {
     reconnectIfNeeded()
-    // request for blockliveId
+    // request for livescratchId
     // liveMessage({meta:"hiimhungry"})
 }
 connectFirstTime()
@@ -328,8 +328,8 @@ setInterval(reconnectIfNeeded,1000)
 
 /// other things
 
-    blockliveListener = async (msg) => {
-        if(blockliveDeleted) {return}
+    livescratchListener = async (msg) => {
+        if(livescratchDeleted) {return}
         if(typeof BL_UTILS != 'undefined' && BL_UTILS.isDragging()) {
             // dong add to list if its a move event on the current moving block
             if(msg.meta == 'vm.blockListen' && msg.type == 'move' && msg.event.blockId == BL_UTILS.getDraggingId()) {return}
@@ -351,7 +351,7 @@ setInterval(reconnectIfNeeded,1000)
             onBlockRecieve(msg)
         } else if (msg.meta == "messageList") {
             for (let i = 0; i < msg.messages.length; i++) {
-                await blockliveListener(msg.messages[i])
+                await livescratchListener(msg.messages[i])
             }
         } else if (msg.meta == "vm.shareBlocks") {
             blVersion++
@@ -757,7 +757,7 @@ function isBadToSend(event, target) {
             let block = target.blocks.getBlock(event.blockId)
             if(block?.shadow) {return true}
 
-            // edge case: c1 move unlinked var block into parent block. c2 blocklive mistakenly moves a linked block into that place. c2 moves linked block out of the parent block and does not move out of c1
+            // edge case: c1 move unlinked var block into parent block. c2 livescratch mistakenly moves a linked block into that place. c2 moves linked block out of the parent block and does not move out of c1
             // dont send if moves a varible to same position
             // if(!!block && (block.fields.VARIABLE || block.fields.LIST)) {
             //     if(!!event.oldCoordinate && !!event.newCoordinate && (
@@ -842,7 +842,7 @@ function getStringEventRep(e) {
 }
 
 oldBlockListener = vm.blockListener
-blockliveEvents = {}
+livescratchEvents = {}
 createEventMap = {}
 toBeMoved = {}
 // listen to local blockly events
@@ -856,11 +856,11 @@ function blockListener(e) {
     if(e.type == 'change'){changee = e}
     if(e.type == 'move'){movee = e}
     if(e.type == 'comment_change'){comee = e}
-    // filter ui events and blocklive
+    // filter ui events and livescratch
     let stringRep = getStringEventRep(e)
-    if(stringRep in blockliveEvents) {delete blockliveEvents[stringRep]}
+    if(stringRep in livescratchEvents) {delete livescratchEvents[stringRep]}
     else if(
-        !e.isBlocklive && 
+        !e.isLivescratch && 
         ["endDrag",'ui','dragOutside'].indexOf(e.type) == -1 &&
         !isBadToSend(e,vm.editingTarget) &&
         e.element != 'stackclick'
@@ -1004,7 +1004,7 @@ function onBlockRecieve(d) {
         bEvent = ScratchBlocks.Events.fromJson(d.json,getWorkspace())
     }
     //set blockly event tag
-    bEvent.isBlocklive = true
+    bEvent.isLivescratch = true
 
     //........... Modify event ...........//
 
@@ -1072,7 +1072,7 @@ function onBlockRecieve(d) {
 
         if(isWorkspaceAccessable()) {
             let createBlEvent = ScratchBlocks.Events.fromJson(createVmEvent,getWorkspace())
-            blockliveEvents[getStringEventRep(createBlEvent)] = true
+            livescratchEvents[getStringEventRep(createBlEvent)] = true
             createBlEvent.run(true)
         }
     }
@@ -1102,8 +1102,8 @@ function onBlockRecieve(d) {
             // record newly made block so that we can intercept it's blockly auto-generated move event later
             // ...dont record it for newly created custom block definitions
             if(bEvent.type == 'create' && !d.extrargs.isCBCreateOrDelete){toBeMoved[bEvent.blockId] = []} 
-            // record played blocklive event
-            blockliveEvents[getStringEventRep(bEvent)] = true
+            // record played livescratch event
+            livescratchEvents[getStringEventRep(bEvent)] = true
             // run event
 
             // try to add transition element stuff
@@ -1189,19 +1189,19 @@ vm.emitWorkspaceUpdate = function() {
     console.log("WORKSPACE UPDATING")
     // add deletes for comments
     getWorkspace()?.getTopComments().forEach(comment=>{
-        blockliveEvents[getStringEventRep({type:'comment_delete',commentId:comment.id})] = true
+        livescratchEvents[getStringEventRep({type:'comment_delete',commentId:comment.id})] = true
     })
     // add creates for comments in new workspace
     Object.keys(vm.editingTarget.comments).forEach(commentId=>{
-        blockliveEvents[getStringEventRep({type:'comment_create',commentId})] = true
+        livescratchEvents[getStringEventRep({type:'comment_create',commentId})] = true
     })
     // add deletes for top blocks in current workspace
     getWorkspace()?.topBlocks_.forEach(block=>{
-        blockliveEvents[getStringEventRep({type:'delete',blockId:block.id})] = true
+        livescratchEvents[getStringEventRep({type:'delete',blockId:block.id})] = true
     })
     // add creates for all blocks in new workspace
     Object.keys(vm.editingTarget.blocks._blocks).forEach(blockId=>{
-        blockliveEvents[getStringEventRep({type:'create',blockId})] = true;
+        livescratchEvents[getStringEventRep({type:'create',blockId})] = true;
         let block = vm.editingTarget.blocks._blocks[blockId]
         if(!block.parent) {
             let moveRep = getStringEventRep({
@@ -1211,18 +1211,18 @@ vm.emitWorkspaceUpdate = function() {
                 newParentId:block.parent
             })
             console.log(moveRep)
-            blockliveEvents[moveRep] = true
+            livescratchEvents[moveRep] = true
         }
     })
     // add var creates and deletes
     Object.entries(vm.editingTarget.variables).forEach(varr=>{
-        blockliveEvents[getStringEventRep({type:'var_delete',varId:varr[0],isCloud:varr[1].isCloud,varName:varr[1].name,isLocal:false})] = true
-        blockliveEvents[getStringEventRep({type:'var_create',varId:varr[0],isCloud:varr[1].isCloud,varName:varr[1].name,isLocal:true})] = true
+        livescratchEvents[getStringEventRep({type:'var_delete',varId:varr[0],isCloud:varr[1].isCloud,varName:varr[1].name,isLocal:false})] = true
+        livescratchEvents[getStringEventRep({type:'var_create',varId:varr[0],isCloud:varr[1].isCloud,varName:varr[1].name,isLocal:true})] = true
     })
     // add global (local:false) var creates
     Object.entries(vm.runtime.getTargetForStage().variables).forEach(varr=>{
-        // blockliveEvents[getStringEventRep({type:'var_delete',varId:varr[0],isCloud:varr[1].isCloud,varName:varr[1].name,isLocal:false})] = true
-        blockliveEvents[getStringEventRep({type:'var_create',varId:varr[0],isCloud:varr[1].isCloud,varName:varr[1].name,isLocal:false})] = true
+        // livescratchEvents[getStringEventRep({type:'var_delete',varId:varr[0],isCloud:varr[1].isCloud,varName:varr[1].name,isLocal:false})] = true
+        livescratchEvents[getStringEventRep({type:'var_create',varId:varr[0],isCloud:varr[1].isCloud,varName:varr[1].name,isLocal:false})] = true
     })
 
     oldEWU()
@@ -1958,7 +1958,7 @@ vm.duplicateSprite = proxy(vm.duplicateSprite,"duplicatesprite",
         vm.setEditingTarget(a.id)
         pauseEventHandling = false;
         console.log('🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔🔔 stuff done! b, result',b,result); 
-        newTargetEvents[b.sprite.name]?.forEach(event=>blockliveListener(event))
+        newTargetEvents[b.sprite.name]?.forEach(event=>livescratchListener(event))
         
     }),null,null,()=>{
         // send replace blocks message
@@ -1983,7 +1983,7 @@ vm.setCloudProvider = function(that) {
     }
     oldVmSetCloudProvider(that)
 }
-function connectToBlockliveCloud() {
+function connectToLivescratchCloud() {
     if(!blId) {return}
     vm.runtime.ioDevices.cloud.provider.projectId = blId
     vm.runtime.ioDevices.cloud.provider.openConnection()
@@ -2208,7 +2208,7 @@ let shareDropdown = `
 <sharedWith style="display:flex;flex-direction: column;">
         <text style="display:flex;align-self: left;padding-left:4px; padding-top:5px;padding-bottom:5px;font-size: large;">
             Shared With 
-            <unshare style="font-size:14px !important; align-self:center; margin-left:50px; justify-self:end; text-decoration:underline; color:#09004dd1;  cursor:pointer; padding:2px; background-color:rgba(255,255,255,0.15); border-radius:5px;" onclick="unshareBlocklive()">Unlink</unshare>
+            <unshare style="font-size:14px !important; align-self:center; margin-left:50px; justify-self:end; text-decoration:underline; color:#09004dd1;  cursor:pointer; padding:2px; background-color:rgba(255,255,255,0.15); border-radius:5px;" onclick="unshareLivescratch()">Unlink</unshare>
         </text>
         <sharedList  style="overflow: auto; max-height: 350px; display:flex; min-height: 20px; border-radius:10px;gap:5px;flex-direction: column;  ">
             <cell id="blModalExample" style="display:none; gap:10px;flex-direction: row; align-items: center;">
@@ -2280,7 +2280,6 @@ blModalExample = document.querySelector('#blModalExample')
 });
 
         earch.oninput = async ()=>{
-            console.log('hi')
             let currentSearching = earch.value.toLowerCase()
             let user = await getUserInfo(earch.value)
             if(currentSearching != earch.value.toLowerCase()) { return}
@@ -2320,7 +2319,7 @@ let shareCSS = `
 .result:hover {
     background: rgba(255,255,255,0.2);
 }
-.blockliveloader {
+.livescratchloader {
     border: 3px solid rgba(255,0,113,1);
     border-top: 3px solid white;
     border-bottom: 3px solid white;
@@ -2627,34 +2626,34 @@ function refreshShareModal() {
     })})
 }
 
-function makeBlockliveButton(sharebutton) {
+function makeLivescratchButton(sharebutton) {
 
     
 
-    let button = document.createElement('blocklive-init')
+    let button = document.createElement('livescratch-init')
     button.className = Array.from(sharebutton.classList).filter(e=>e.includes('button_outlined-button')||e.includes('menu-bar_menu-bar-button')).join(' ')
     button.style.marginRight = '20px'
     button.style.paddingLeft = '7px'
     button.style.paddingRight = '7px'
     button.style.gap = '7px'
     // button.style.background = ' linear-gradient(90deg, rgba(51,0,54,1) 0%, rgba(255,0,113,1) 60%)'
-    button.style.background = 'rgba(255,0,113,1)' // blocklive pink
+    button.style.background = 'rgba(255,0,113,1)' // livescratch pink
     button.style.display = 'flex'
     button.style.flexDirection = 'row'
 
     let text = document.createElement('text')
     text.style.textAlign = 'center'
-    text.innerHTML = "Blocklive<br>Share"
+    text.innerHTML = "Livescratch<br>Share"
 
     let loader = document.createElement('loader')
-    loader.className = 'blockliveloader'
+    loader.className = 'livescratchloader'
     loader.style.display = 'none'
     button.appendChild(loader)
     button.appendChild(text)
     return button
 }
 function makeRevertButton(communityButton) {
-    let button = document.createElement('blocklive-init')
+    let button = document.createElement('livescratch-init')
     button.id='blRevert'
     button.className = Array.from(communityButton.classList).filter(e=>['button_outlined-button','menu-bar_menu-bar-button','community-button_community-button'].find(n=>e.includes(n))).join(' ')
     
@@ -2667,7 +2666,7 @@ function makeRevertButton(communityButton) {
     button.style.paddingRight = '7px'
     button.style.gap = '7px'
     // button.style.background = ' linear-gradient(90deg, rgba(51,0,54,1) 0%, rgba(255,0,113,1) 60%)'
-    // button.style.background = 'rgba(255,0,113,1)' // blocklive pink
+    // button.style.background = 'rgba(255,0,113,1)' // livescratch pink
     button.style.display = 'flex'
     button.style.flexDirection = 'row'
     button.style.backgroundColor = '#c2aaff'
@@ -2745,10 +2744,10 @@ function addToCredits(text) {
 function showBlStartError(err) {
     let rand=`a${Math.random().toString().substring(2)}`
       // stop spinny
-    document.querySelector('loader.blockliveloader').style.display = 'none'
+    document.querySelector('loader.livescratchloader').style.display = 'none'
 
     document.querySelector('.blErr')?.remove()
-    document.querySelector("blocklivecontainer > blocklive-init").insertAdjacentHTML('afterend',`<div class="${rand} blErr" style="background:#ffcdf2; outline:3px solid red; padding:4px; position:absolute; top:50px; border-radius:12px; color:red"></div>`)
+    document.querySelector("livescratchcontainer > livescratch-init").insertAdjacentHTML('afterend',`<div class="${rand} blErr" style="background:#ffcdf2; outline:3px solid red; padding:4px; position:absolute; top:50px; border-radius:12px; color:red"></div>`)
     document.querySelector('.blErr').innerText=`There was an error:\n ${err}`
     setTimeout(()=>{document.querySelector(`.blErr.${rand}`)?.remove()},5000)
 
@@ -2756,20 +2755,20 @@ function showBlStartError(err) {
 
 let blActivateClick = async ()=>{
 
-    if(blockliveDeleted) {reloadAfterRestart=true} //todo write code so that it can do this without restarting
+    if(livescratchDeleted) {reloadAfterRestart=true} //todo write code so that it can do this without restarting
     if(reloadAfterRestart){
         finishedSavingCB.push(()=>{location.reload()})
         //stop spinny
-        document.querySelector('loader.blockliveloader').style.display = 'none'
+        document.querySelector('loader.livescratchloader').style.display = 'none'
         reloadOnlineUsers()
 
         blShareClick()
     }
     
     // change onclick
-    blockliveButton.onclick = undefined
+    livescratchButton.onclick = undefined
     // set spinny icon
-    document.querySelector('loader.blockliveloader').style.display = 'flex'
+    document.querySelector('loader.livescratchloader').style.display = 'flex'
 
     // save project in scratch
     store.dispatch({type: "scratch-gui/project-state/START_MANUAL_UPDATING"})
@@ -2781,8 +2780,8 @@ let blActivateClick = async ()=>{
 
     chrome.runtime.sendMessage(exId,{json,meta:'create',scratchId,title:store.getState().preview.projectInfo.title},async (response)=>{
         if(response.noauth || response.err) {
-            showBlStartError(response.noauth ? 'Blocklive hasnt verified you yet.' : response.err)
-            blockliveButton.onclick = blActivateClick
+            showBlStartError(response.noauth ? 'Livescratch hasnt verified you yet.' : response.err)
+            livescratchButton.onclick = blActivateClick
             return;
         }
         
@@ -2795,21 +2794,21 @@ let blActivateClick = async ()=>{
         projectReplaceInitiated = true;
         pauseEventHandling = false
         liveMessage({meta:"myId",id:blId})
-        activateBlocklive()
-        // JOIN BLOCKLIVE SESSION!!!!
+        activateLivescratch()
+        // JOIN LIVESCRATCH SESSION!!!!
         liveMessage({meta:"joinSession"})
         readyToRecieveChanges = true
         await refreshShareModal()
 
-        // add blocklive ref in instructions credits
+        // add livescratch ref in instructions credits
         // addToCredits('Made with BIocklive #blklv')
         creditCollabers(Object.keys(shareDivs))
 
         // stop spinny
-        document.querySelector('loader.blockliveloader').style.display = 'none'
+        document.querySelector('loader.livescratchloader').style.display = 'none'
 
         // Set button onclick
-        blockliveButton.onclick = blShareClick
+        livescratchButton.onclick = blShareClick
         reloadOnlineUsers()
 
         blShareClick()
@@ -2819,7 +2818,7 @@ let blActivateClick = async ()=>{
 let blShareClick = ()=>{console.log('clicked'); blDropdown.style.display = (blDropdown.style.display == 'none' ? 'flex' : 'none'); refreshShareModal() }
 
 console.log('listening for share button')
-blockliveButton = null
+livescratchButton = null
 blDropdown = null
 
 function doIOwnThis() {
@@ -2830,14 +2829,14 @@ listenForObj('span[class*="share-button_share-button"]',
     (shareButton)=>{
         // bc.children[1].children[0].innerHTML = "Become Blajingus"
 
-        let container = document.createElement('blockliveContainer')
+        let container = document.createElement('livescratchContainer')
         container.style.display = 'flex'
         container.style.flexDirection = 'column'
 
         if(!doIOwnThis()) {return} // if 
-        let button = makeBlockliveButton(shareButton)
-        blockliveButton = button
-        let dropdown = document.createElement('blockliveDropdown')
+        let button = makeLivescratchButton(shareButton)
+        livescratchButton = button
+        let dropdown = document.createElement('livescratchDropdown')
         dropdown.innerHTML = shareDropdown
         dropdown.style.position = 'absolute'
         dropdown.style.top = '40px'
@@ -2915,7 +2914,7 @@ function addRevertButton() {
 
     // if(!doIOwnThis()) {return} // if 
     let button = makeRevertButton(seeProjectPage)
-    // let dropdown = document.createElement('blockliveDropdown')
+    // let dropdown = document.createElement('livescratchDropdown')
     // dropdown.innerHTML = shareDropdown
     // dropdown.style.position = 'absolute'
     // dropdown.style.top = '40px'
@@ -2948,7 +2947,7 @@ function addRevertButton() {
 
 
 function revertProject() {
-    let conf = window.confirm("Blocklive Revert:\nThis will delete recent blocklive edits and reset the project to the version that was saved in your mystuff before you opened it. \n - Use this if you think blocklive broke your project\n - You'll still have to click 'Save Now' to finalize the revert.\n\nClick OK to revert\nClick Cancel to cancel")
+    let conf = window.confirm("Livescratch Revert:\nThis will delete recent livescratch edits and reset the project to the version that was saved in your mystuff before you opened it. \n - Use this if you think livescratch broke your project\n - You'll still have to click 'Save Now' to finalize the revert.\n\nClick OK to revert\nClick Cancel to cancel")
     if(!conf) {return}
 
     vm.loadProject(revertJSON)
@@ -3077,8 +3076,8 @@ setTimeout(reloadOnlineUsers,500)
 
 const overlayHTML = `
 <loading-content>
-<img src="https://assets.scratch.mit.edu/9a5f5b45565e6e517bc39bba7d90395e.svg" id="bl-load-logo">
-<div class="bl-loading-text">Loading blocklive...</div>
+<img src="https://assets.scratch.mit.edu/9a5f5b45565e6e517bc39bba7d90395e.svg" id="ls-load-logo">
+<div class="ls-loading-text">Loading livescratch...</div>
 </loading-content>
 </img>`
 const overlayCSS = `
@@ -3091,7 +3090,7 @@ loading-content{
     height: 100%;
     scale:70%;
 }
-blocklive-loading{
+livescratch-loading{
     z-index:10000;
     position:fixed;
     width: 100vw;
@@ -3099,8 +3098,8 @@ blocklive-loading{
     /* backdrop-filter: blur(12px); */
     transition: 0.34s;
 }
-.bl-loading-text{
-    animation: .6s ease-in-out 0.3s infinite alternate bl-logo-loading;
+.ls-loading-text{
+    animation: .6s ease-in-out 0.3s infinite alternate ls-logo-loading;
     /* animation: name duration timing-function delay iteration-count direction fill-mode; */
 
     font-family: 'Helvetica Neue','Helvetica',Arial,sans-serif;
@@ -3114,16 +3113,16 @@ blocklive-loading{
 
 
 }
-#bl-load-logo{
+#ls-load-logo{
     display: flex;
-    animation: .6s ease-in-out infinite alternate bl-logo-loading;
+    animation: .6s ease-in-out infinite alternate ls-logo-loading;
     scale:400%;
     opacity: 0%;
     transition: 0.34s;
 
 }
 
-@keyframes bl-logo-loading {
+@keyframes ls-logo-loading {
     from{
         transform: perspective(400px) rotateX(0deg) rotateY(5deg);
     }
@@ -3134,22 +3133,22 @@ blocklive-loading{
 `
 function finishBLLoadingAnimation() {
     try{
-    document.querySelector('blocklive-loading').style.backdropFilter = ' blur(0px)'
-    document.querySelector('#bl-load-logo').style.scale = '500%'
-    document.querySelector('#bl-load-logo').style.opacity = '0%'
-    document.querySelector('.bl-loading-text').style.opacity = '0%'
+    document.querySelector('livescratch-loading').style.backdropFilter = ' blur(0px)'
+    document.querySelector('#ls-load-logo').style.scale = '500%'
+    document.querySelector('#ls-load-logo').style.opacity = '0%'
+    document.querySelector('.ls-loading-text').style.opacity = '0%'
 
-    setTimeout(()=>{document.querySelector('blocklive-loading').style.display = 'none'},601)
+    setTimeout(()=>{document.querySelector('livescratch-loading').style.display = 'none'},601)
     } catch (e) {console.error(e)}
 }
 
 function startBLLoadingAnimation() {
     try{
-        document.querySelector('blocklive-loading').style.display = 'block'
-        document.querySelector('blocklive-loading').style.backdropFilter = ' blur(12px)'
-        document.querySelector('#bl-load-logo').style.scale = '100%'
-        document.querySelector('#bl-load-logo').style.opacity = '100%'
-        document.querySelector('.bl-loading-text').style.opacity = '100%'
+        document.querySelector('livescratch-loading').style.display = 'block'
+        document.querySelector('livescratch-loading').style.backdropFilter = ' blur(12px)'
+        document.querySelector('#ls-load-logo').style.scale = '100%'
+        document.querySelector('#ls-load-logo').style.opacity = '100%'
+        document.querySelector('.ls-loading-text').style.opacity = '100%'
     } catch (e) {console.error(e)}
 }
 
@@ -3159,7 +3158,7 @@ function injectLoadingOverlay() {
     styleInj.innerHTML = overlayCSS
     document.head.appendChild(styleInj)
 
-    let loadingOverlay = document.createElement('blocklive-loading')
+    let loadingOverlay = document.createElement('livescratch-loading')
     loadingOverlay.innerHTML = overlayHTML
     document.body.appendChild(loadingOverlay)
 
@@ -3193,7 +3192,7 @@ let chatCss = `
     font-size: 27px;
     position:relative;
 }
-.bl-chat-toggle-button{
+.ls-chat-toggle-button{
     user-select: none;
     display: flex;
     justify-content: center;
@@ -3207,12 +3206,12 @@ let chatCss = `
 
     margin-left:10px;
 }
-.bl-chat-toggle-button:hover{
+.ls-chat-toggle-button:hover{
     /* box-shadow: 0 0 15px 0 rgba(255, 0, 208, 0.8); */
     box-shadow: 5px 5px 3.4px 0px rgba(0,0,0,0.5);
     transform:translate(-3px,-3px)
 }
-.bl-chat-toggle-button:active{
+.ls-chat-toggle-button:active{
     /* box-shadow: 0 0 15px 0 rgba(255, 0, 208, 0.8); */
     box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.5);
     transform: none;
@@ -3223,8 +3222,8 @@ let chatCss = `
 .mymsg{
     align-self: flex-end;
 }
-bl-msg-space{height:20px}
-bl-msg{
+ls-msg-space{height:20px}
+ls-msg{
     border:solid rgba(0, 0, 0, 0.189);
     border-radius: 10px;
     padding: 5px;
@@ -3233,16 +3232,16 @@ bl-msg{
     background-color: rgb(255, 255, 255);
     overflow-wrap: anywhere;
 }
-bl-msg-sender-name{
+ls-msg-sender-name{
     font-style:italic;
     color:rgb(73, 73, 73);
 }
-bl-msg-sender{
+ls-msg-sender{
     display: flex;
     flex-direction: row;
     gap:5px;
 }
-bl-msg-sender-img{
+ls-msg-sender-img{
     background-image: url(https://uploads.scratch.mit.edu/get_image/user/default_60x60.png);
     background-size: contain;
     width:25px;
@@ -3250,7 +3249,7 @@ bl-msg-sender-img{
     border-radius: 10px;
 }
 
-bl-chat-send-button{
+ls-chat-send-button{
     user-select: none;
     min-width: 34px;
     height: 34px;
@@ -3263,10 +3262,10 @@ bl-chat-send-button{
 
     transition: 0.2s scale;
 }
-bl-chat-send-button:hover{
+ls-chat-send-button:hover{
     scale: 112%;
 }
-bl-chat-send{
+ls-chat-send{
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -3277,7 +3276,7 @@ bl-chat-send{
     /* max-height:150px; */
 }
 
-bl-chat-input{
+ls-chat-input{
     flex-grow: 1;
     border-radius: 16px;
     box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.4);
@@ -3295,11 +3294,11 @@ bl-chat-input{
 
     /* text-align: center; */
 }
-bl-chat-input:focus{
+ls-chat-input:focus{
     outline: none;
 }
 
-bl-chat-msgs{
+ls-chat-msgs{
     display: flex;
     flex-shrink:1;
     flex-direction: column;
@@ -3318,10 +3317,10 @@ bl-chat-msgs{
     gap:3px;
     align-items: flex-start;
 }
-bl-chat-msgs::-webkit-scrollbar { width: 0 !important }
-bl-chat-msgs { overflow: -moz-scrollbars-none; }
+ls-chat-msgs::-webkit-scrollbar { width: 0 !important }
+ls-chat-msgs { overflow: -moz-scrollbars-none; }
 
-bl-chat-head-x{
+ls-chat-head-x{
     cursor:pointer;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 22px;
@@ -3339,21 +3338,21 @@ bl-chat-head-x{
     color:white;
     transition: 0.2s scale;
 }
-bl-chat-head-x:hover{
+ls-chat-head-x:hover{
     scale: 112%;
 }
-bl-chat-head-filler{
+ls-chat-head-filler{
     display: flex;
     flex-grow:1;
 }
-bl-chat-head-text{
+ls-chat-head-text{
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-weight: bold;
     font-size: 20px;
     margin-left: 20px;
     color:white;
 }
-bl-chat-head {
+ls-chat-head {
     cursor:move;
     user-select: none;
     display: flex;
@@ -3368,7 +3367,7 @@ bl-chat-head {
     box-shadow: 0px 0px 21px 0px rgba(0,0,0,0.5);
 }
 
-bl-chat{
+ls-chat{
     z-index:1000;
     position: absolute;
     border-radius: 20px;
@@ -3402,22 +3401,22 @@ function addChat() {
 try{
     injectChatCSS()
 
-    let blChat = document.createElement('bl-chat')
-    blChat.id = 'bl-chat'
+    let blChat = document.createElement('ls-chat')
+    blChat.id = 'ls-chat'
     blChat.innerHTML = blChatHTML
     // blChat.style.visibility = 'hidden'
     document.body.appendChild(blChat)
 
-    let chatbox = document.querySelector('bl-chat')
+    let chatbox = document.querySelector('ls-chat')
     dragElement(chatbox)
 
-    document.querySelector('bl-chat-input').addEventListener('keydown',(e)=>{
+    document.querySelector('ls-chat-input').addEventListener('keydown',(e)=>{
         if(e.keyCode == 13) {
             postMessageBubble()
             e.preventDefault()
         }
     })
-    document.querySelector('bl-chat-send-button').onclick = postMessageBubble
+    document.querySelector('ls-chat-send-button').onclick = postMessageBubble
     chatbox.style.scale = 0
 
     //// get own username, then populate chat history
@@ -3436,7 +3435,7 @@ function addChatButton() {
     try{
         let chatElem = document.createElement('div')
         chatElem.id = 'blChatButton'
-        chatElem.classList.add('bl-chat-toggle-button')
+        chatElem.classList.add('ls-chat-toggle-button')
         chatElem.innerHTML = `<span class="textbubbleemoji" onclick="toggleChat()"><span>💬</span><span class="chatdot"></span></span>`
         let panel = document.getElementById('blUsersPanel')
 
@@ -3466,18 +3465,18 @@ function setChatUnread(num) {
 }
 
 let blChatHTML = `
-<bl-chat-head id="bl-chat-banner">
-    <bl-chat-head-text>Blocklive Chat</bl-chat-head-text>
-    <bl-chat-head-filler></bl-chat-head-filler>
-    <bl-chat-head-x onclick="toggleChat(false)">+</bl-chat-head-x>
-</bl-chat-head>
-<bl-chat-msgs>
-    <bl-msg-space></bl-msg-space>
-</bl-chat-msgs>
-<bl-chat-send>
-    <bl-chat-input contenteditable="true"></bl-chat-input>
-    <bl-chat-send-button>⬆</bl-chat-send-button>
-</bl-chat-send>`
+<ls-chat-head id="ls-chat-banner">
+    <ls-chat-head-text>Livescratch Chat</ls-chat-head-text>
+    <ls-chat-head-filler></ls-chat-head-filler>
+    <ls-chat-head-x onclick="toggleChat(false)">+</ls-chat-head-x>
+</ls-chat-head>
+<ls-chat-msgs>
+    <ls-msg-space></ls-msg-space>
+</ls-chat-msgs>
+<ls-chat-send>
+    <ls-chat-input contenteditable="true"></ls-chat-input>
+    <ls-chat-send-button>⬆</ls-chat-send-button>
+</ls-chat-send>`
 
 
 
@@ -3545,19 +3544,19 @@ function sanitize(string) {
   }
 
 async function addMessage(msg, notif) {
-    let msgsElem = document.querySelector('bl-chat-msgs')
+    let msgsElem = document.querySelector('ls-chat-msgs')
     if(msg.sender != lastSender) {
-        let unameElem = document.createElement('bl-msg-sender')
+        let unameElem = document.createElement('ls-msg-sender')
         unameElem.innerHTML = `
-        <bl-msg-sender-img></bl-msg-sender-img>
-        <bl-msg-sender-name>${sanitize(msg.sender)}</bl-msg-sender-name>`
+        <ls-msg-sender-img></ls-msg-sender-img>
+        <ls-msg-sender-name>${sanitize(msg.sender)}</ls-msg-sender-name>`
         lastSender = msg.sender
         if(msg.sender == uname) {unameElem.classList.add('mymsg')}
         msgsElem.appendChild(unameElem)
         
-        {(async()=>{unameElem.querySelector('bl-msg-sender-img').style.backgroundImage = `url(${(await getUserInfo(msg.sender)).pic})`})()}
+        {(async()=>{unameElem.querySelector('ls-msg-sender-img').style.backgroundImage = `url(${(await getUserInfo(msg.sender)).pic})`})()}
     }
-    let msgElem = document.createElement('bl-msg')
+    let msgElem = document.createElement('ls-msg')
     msgElem.innerText = msg.text 
 
     if(msg.linkify) {
@@ -3597,7 +3596,7 @@ function playSound(url) {
 }
 
 function postMessageBubble() {
-    let inputElem = document.querySelector('bl-chat-input')
+    let inputElem = document.querySelector('ls-chat-input')
     let messageText = inputElem.innerText
     messageText = messageText.trim()
     if(messageText=='') {return}
@@ -3611,7 +3610,7 @@ function postMessageBubble() {
 }
 
 function toggleChat(state) {
-    let chatbox = document.querySelector('bl-chat')
+    let chatbox = document.querySelector('ls-chat')
     if(state===undefined) {
         // chatbox.style.visibility = chatbox.style.visibility=='hidden' ? 'visible' : 'hidden'
         chatbox.style.scale = chatbox.style.scale==0.8 ? 0 : 0.8
@@ -3624,7 +3623,7 @@ function toggleChat(state) {
     if(isChatOpen()) {setChatUnread(0)}
 }
 function isChatOpen() {
-    let chatbox = document.querySelector('bl-chat')
+    let chatbox = document.querySelector('ls-chat')
     return chatbox.style.scale = chatbox.style.scale==0.8
 }
 
@@ -3681,12 +3680,12 @@ function moveMyBubble() {
 }
 
 function backspaceFix() {
-    document.querySelector("#bl-chat > bl-chat-send > bl-chat-input").addEventListener('keydown',(e)=>{
+    document.querySelector("#ls-chat > ls-chat-send > ls-chat-input").addEventListener('keydown',(e)=>{
         e.stopPropagation();
     })
     document.addEventListener('mousedown',e=>{
-        if(e.target!=document.querySelector("#bl-chat > bl-chat-send > bl-chat-input") && 
-            document.activeElement==document.querySelector("#bl-chat > bl-chat-send > bl-chat-input")) {
+        if(e.target!=document.querySelector("#ls-chat > ls-chat-send > ls-chat-input") && 
+            document.activeElement==document.querySelector("#ls-chat > ls-chat-send > ls-chat-input")) {
                 document.activeElement.blur()
         }
     })
