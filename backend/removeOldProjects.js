@@ -21,7 +21,7 @@ export function installCleaningJob(sessionManager, userManager) {
         inprog=false;
     },{
         scheduled: true,
-        timezone: "America/Los_Angeles"
+        timezone: "Asia/Qatar"
     })
 }
 
