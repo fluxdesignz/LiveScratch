@@ -364,10 +364,6 @@ async function onTabLoad() {
 
 
 chrome.runtime.sendMessage(exId, { meta: 'getUsernamePlus' }, async (userData) => {
-  if(userData.verifyBypass) {
-    addHideLivescratchButton(false);
-    removeHideLivescratchButton()
-  }
   if (!userData.currentBlToken) {
 
     let newVerified = false;
@@ -387,9 +383,7 @@ chrome.runtime.sendMessage(exId, { meta: 'getUsernamePlus' }, async (userData) =
         removeHideLivescratchButton()
         setTimeout(() => { document.querySelector('#blSuccess').remove() }, 1000 * 2)
       } else {
-        defaultAddHideLivescratchButton(userData.verifyBypass)
         let error = await chrome.runtime.sendMessage(exId,{meta:'getVerifyError'})
-        // let isBypass = userData.verifyBypass
         if(error=='no cloud') {
           document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;"><span id="bigx" style="display:none; padding:3px; border-radius:50%; background:lightpink; color:maroon; cursor:pointer;" onclick="document.querySelector('#unverified').remove()">&nbspx&nbsp</span>⚠️ Livescratch could not verify your account because the cloud data 'set' action failed. Scratch's cloud data servers might be down, causing this issue. Click 'hide verify' below to silence this message.`)
         } else {
@@ -414,12 +408,10 @@ chrome.runtime.sendMessage(exId, { meta: 'getUsernamePlus' }, async (userData) =
         document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;">⚠️ Cant connect to livescratch servers at ${apiURL} <a href="https://status.uptime-monitor.io/6499c89d4bfb79bb5f20ac4d" target="_blank">Check Uptime</a> or <a onclick="(()=>{chrome.runtime.sendMessage(exId,{meta:'dontShowVerifyError',val:false}); addHideLivescratchButton(false);})()">Dont show this message again</a><div>`)
       }
       else if (verifying) {
-        defaultAddHideLivescratchButton(userData.verifyBypass)
         document.querySelector('#verifying')?.remove()
         document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="verifying" style="background:#ea47ff; color:white;"><img height=15 src="https://upload.wikimedia.org/wikipedia/commons/a/ad/YouTube_loading_symbol_3_%28transparent%29.gif"/> Livescratch is verifying your account ...<div>`)
       } else {
         if (newVerified) { return }
-        defaultAddHideLivescratchButton(userData.verifyBypass)
         document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;">⚠️ Livescratch could not verify your account. Reload the tab in a few seconds. If this issue continues, contact @ilhp10 or @rgantzos<div>`)
       }
     })

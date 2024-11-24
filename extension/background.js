@@ -189,7 +189,6 @@ async function backgroundScript() {
     return uname
   }
   LIVESCRATCH.refreshUsername = refreshUsername;
-  let verifyBypass = false;
 
   async function testVerification() {
     try {
@@ -197,7 +196,6 @@ async function backgroundScript() {
       if (!json.verified) {
         storeLivescratchToken(uname, null, true)
       }
-      verifyBypass = json.bypass
 
     } catch (e) { console.error(e) }
   }
@@ -391,8 +389,8 @@ async function backgroundScript() {
           sendResponse(uname)
         } else if (request.meta == 'getUsernamePlus') {
           console.log('sending response')
-          console.log({ uname, signedin, currentBlToken, apiUrl, verifyBypass })
-          sendResponse({ uname, signedin, currentBlToken, apiUrl, verifyBypass });
+          console.log({ uname, signedin, currentBlToken, apiUrl})
+          sendResponse({ uname, signedin, currentBlToken, apiUrl});
         } else if (request.meta == 'callback') {
           tabCallbacks[sender.tab.id] = sendResponse
         } else if (request.meta == 'projectSaved') {
@@ -455,7 +453,7 @@ async function backgroundScript() {
     if (request.meta == 'getUsername') {
       sendResponse(uname)
     } else if (request.meta == 'getUsernamePlus') {
-      sendResponse({ uname, signedin, currentBlToken, apiUrl, verifyBypass });
+      sendResponse({ uname, signedin, currentBlToken, apiUrl});
       refreshUsername()
     }
   })

@@ -92,7 +92,7 @@ chrome.runtime.sendMessage({ meta: "getUsernamePlus" }, function (info) {
     let unverified = document.getElementById('unverified');
     if (info.currentBlToken) { unverified.style.display = 'none' }
     else { unverified.style.display = 'inherit' }
-    if (!info.currentBlToken && !info.verifyBypass) {
+    if (!info.currentBlToken) {
         showNoAuthMessage()
     } else {
         // populate with current friends
