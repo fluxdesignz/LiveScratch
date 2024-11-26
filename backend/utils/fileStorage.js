@@ -4,18 +4,33 @@ import path from 'path';
 import sanitize from 'sanitize-filename';
 import clone from 'clone'
 
+import {freePassesPath, freePasses} from './scratch-auth.js';
+import { saveRecent } from './recentUsers.js';
+import { isFinalSaving } from '../index.js';
+
 export const livescratchPath = 'storage/sessions/livescratch'
 export const scratchprojectsPath = 'storage/sessions/scratchprojects'
 export const lastIdPath = 'storage/sessions/lastId'
 export const usersPath = 'storage/users'
-
+export const bannedPath = 'storage/banned'
 
 function sleep(millis) {
-    return new Promise(res=>setTimeout(res,millis))
+     return new Promise(res=>setTimeout(res,millis))
 }
+
 if(!fs.existsSync('storage')) {
     fs.mkdirSync('storage')
 }
+
+const bannedList = () => {
+     try {
+         const data = fs.readFileSync(bannedPath, 'utf-8');
+         return data.split('\n').filter(line => line.trim() !== '');
+     } catch (err) {
+         if (err.code === 'ENOENT') return [];
+         throw err;
+     }
+};
 
 export function saveMapToFolder(obj, dir) {
     // if obj is null, return
@@ -97,3 +112,99 @@ export function loadMapFromFolder(dir) {
     })
     return obj
 }
+
+export function loadMapFromFolderRecursive(dir) {
+     let obj = {};
+ 
+     // Check that the directory exists; otherwise, return an empty object
+     if (!fs.existsSync(dir)) {
+         return obj;
+     }
+ 
+     // Read directory contents
+     const dirents = fs.readdirSync(dir, { withFileTypes: true });
+ 
+     for (const dirent of dirents) {
+         const fullPath = path.join(dir, dirent.name);
+ 
+         if (dirent.isFile()) {
+             try {
+                 // Parse the file's contents as JSON
+                 if (dirent.name=="banned") {
+                    obj[dirent.name] = bannedList();
+                 } else {
+                    const content = fs.readFileSync(fullPath, 'utf8');
+                    obj[dirent.name] = JSON.parse(content);
+                 }
+             } catch (e) {
+                 console.error(
+                     'JSON parse error on file: ' +
+                     fullPath +
+                     "\x1b[1m" + // bold text
+                     dirent.name +
+                     "\x1b[0m" // reset text
+                 );
+                 fs.rmSync(fullPath); // Remove the file if parsing fails
+             }
+         } else if (dirent.isDirectory()) {
+             // If it's a directory, call the function recursively
+             obj[dirent.name] = loadMapFromFolderRecursive(fullPath);
+         }
+     }
+ 
+     return obj;
+}
+
+async function saveAsync(sessionManager) {
+     if(isFinalSaving) {return} // dont final save twice
+
+     console.log('saving now...')
+     await sleep(10); // in case there is an error that nans lastid out
+     await fsp.writeFile(lastIdPath,(sessionManager.lastId).toString());
+     await fsp.writeFile(freePassesPath,JSON.stringify(freePasses))
+
+     // DONT SAVE LIVESCRATCH PROJECTS BECAUSE ITS TOO COMPUTATIONALLY EXPENSIVE AND IT HAPPENS ANYWAYS ON OFFLOAD
+
+     await saveRecent();
+}
+export async function saveLoop(sessionManager) {
+     while(true) {
+          try{ await saveAsync(sessionManager); } 
+          catch (e) { console.error(e) }
+          await sleep(30 * 1000)
+     }
+}
+
+export function ban(username) {
+     return new Promise((resolve, reject) => {
+          try {
+               if(!(bannedList().includes(username))) {
+                    fs.writeFileSync(bannedPath, (username + '\n'), { flag: 'a' });
+               }
+               resolve();
+          } catch(err) {
+               reject(err);
+          }
+     })
+}
+
+export function unban(username) {
+     return new Promise((resolve, reject) => {
+          try {
+               const banned = bannedList();
+               const updatedList = banned.filter(user => user !== username);
+               fs.writeFileSync(bannedPath, updatedList.join('\n'), 'utf-8');
+               resolve();
+          } catch(err) {
+               reject(err);
+          }
+     })
+}
+
+export function getBanned(promise = true) {
+     if (!promise) {
+         return bannedList();
+     }
+ 
+     return Promise.resolve(bannedList());
+ } 

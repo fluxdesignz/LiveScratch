@@ -1,6 +1,7 @@
 import fsp from 'fs/promises'
 import fs from 'fs'
 import cron from 'node-cron'
+import path from 'path';
 
 const recentPath = 'storage/recent.json'
 
@@ -23,7 +24,10 @@ setInterval(saveRecent,1000)
 
 // save to file
 export async function saveRecent() {
-    await fsp.writeFile(recentPath,JSON.stringify({recent,recentRealtime,recentShared,popup}))
+    const dirPath = path.dirname(recentPath);
+    await fsp.mkdir(dirPath, { recursive: true });
+    
+    await fsp.writeFile(recentPath,JSON.stringify({recent,recentRealtime,recentShared,popup}));
 }
 
 export function recordPopup(username) {

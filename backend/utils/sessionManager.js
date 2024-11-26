@@ -2,11 +2,11 @@ import fs from 'fs'
 import fsp from 'fs/promises'
 import path, { sep } from 'path';
 import sanitize from 'sanitize-filename';
-import { livescratchPath, lastIdPath, saveMapToFolder, saveMapToFolderAsync, scratchprojectsPath } from './filesave.js';
+import { livescratchPath, lastIdPath, saveMapToFolder, saveMapToFolderAsync, scratchprojectsPath } from './fileStorage.js';
 import { Blob } from 'node:buffer'
 import { countPopup, countRecent, countRecentRealtime, countRecentShared, countUniquePopup } from './recentUsers.js';
 import { getAuthStats } from './scratch-auth.js';
-import { numWithCreds, numWithoutCreds } from './index.js';
+import { numWithCreds, numWithoutCreds } from './scratch-auth.js';
 
 const ensureDirectoryExistence = (filePath) => {
     const dirname = path.dirname(filePath);
@@ -363,7 +363,6 @@ export default class SessionManager {
 
     }
     static fromJSON(ob) {
-        console.log(ob)
         let ret = new SessionManager();
         // if(ob.scratchprojects) { ret.scratchprojects = ob.scratchprojects; }
         if (ob.lastId) { ret.lastId = ob.lastId; }
@@ -661,7 +660,7 @@ export default class SessionManager {
         }
     }
 
-    getScratchToBLProject(scratchId) {
+    getScratchToLSProject(scratchId) {
         let blId = this.getScratchProjectEntry(scratchId)?.blId
         if (!blId) { return null }
         return this.getProject(blId)

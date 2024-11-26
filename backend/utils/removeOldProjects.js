@@ -1,9 +1,8 @@
 /// for some reason this causes a ton of issues :/
 
-import { livescratchPath, scratchprojectsPath } from './filesave.js'
+import { livescratchPath, scratchprojectsPath } from './fileStorage.js'
 import fs from 'fs'
 import cron from 'node-cron'
-import { sep } from 'path';
 
 function sleep(millis) {
     return new Promise(res => setTimeout(res, millis))

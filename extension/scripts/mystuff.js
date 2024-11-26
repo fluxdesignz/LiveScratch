@@ -54,7 +54,7 @@ function leaveId(id, div) {
 function sendLeave(scratchId, blId) {
   blMySTuff.splice(blMySTuff.findIndex(item => (item.scratchId == scratchId)), 1)
   if (blId) {
-    chrome.runtime.sendMessage(exId, { meta: 'leaveBlId', blId })
+    chrome.runtime.sendMessage(exId, { meta: 'leaveLSId', blId })
   } else {
     chrome.runtime.sendMessage(exId, { meta: 'leaveScratchId', scratchId })
   }

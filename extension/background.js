@@ -94,7 +94,7 @@ async function backgroundScript() {
 
     if (info.goto == 'new') {
       //register callbacks and redirect
-      newProjects[tab.id] = info.blId //TODO: send this with api
+      newProjects[tab.id] = info.lsId //TODO: send this with api
       return newProjectPage
     } else {
       if (tab.url.endsWith('editor') || tab.url.endsWith('editor/')) {
@@ -376,7 +376,7 @@ async function backgroundScript() {
         console.log("external message:", request);
         if (request.meta == 'getBlId') {
           if (!request.scratchId || request.scratchId == '.') { return '' }
-          sendResponse((await (await fetch(`${apiUrl}/blId/${request.scratchId}/${uname}`, { headers: { authorization: currentBlToken } })).text()).replaceAll('"', ''))
+          sendResponse((await (await fetch(`${apiUrl}/lsId/${request.scratchId}/${uname}`, { headers: { authorization: currentBlToken } })).text()).replaceAll('"', ''))
           // } else if(request.meta =='getInpoint') {
           //   sendResponse(await (await fetch(`${apiUrl}/projectInpoint/${request.blId}`)).json())
         } else if (request.meta == 'getJson') {
@@ -428,8 +428,8 @@ async function backgroundScript() {
             method: 'PUT',
             headers: { authorization: currentBlToken }
           })
-        } else if (request.meta == 'leaveBlId') {
-          fetch(`${apiUrl}/leaveBlId/${request.blId}/${await refreshUsername()}`, {
+        } else if (request.meta == 'leaveLSId') {
+          fetch(`${apiUrl}/leaveLSId/${request.blId}/${await refreshUsername()}`, {
             method: 'PUT',
             headers: { authorization: currentBlToken }
           })

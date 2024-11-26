@@ -1,4 +1,3 @@
-import { bypassUserAuth } from "./index.js";
 import fs from 'fs'
 export const freePassesPath = 'storage/freePasses.json'
 export const failedAuthLog = {}
@@ -180,7 +179,7 @@ export function deleteFreePass(username) {
 
 
 export function authenticate(username, token, bypassBypass) {
-    if (bypassUserAuth && !bypassBypass) { return true }
+    if (!bypassBypass) { return true }
     if(!username) { console.error(`undefined username attempted to authenticate with token ${token}`); return '*'}
     let success = hasFreePass(username) || userManager.getUser(username).token == token
     if (success) {
@@ -193,4 +192,20 @@ export function authenticate(username, token, bypassBypass) {
 
     }
     return success
+}
+
+export let numWithCreds = 0
+export let numWithoutCreds = 0
+export function fullAuthenticate(username,token,lsId,bypassAuth) {
+     if(token) {numWithCreds++}
+     else {numWithoutCreds++}
+     if(!username) { console.error(`undefined username attempted to authenticate on project ${lsId} with token ${token}`); username = '*'}
+     let userAuth = authenticate(username,token,bypassAuth)
+     let isUserbypassAuth = (!bypassAuth);
+     let authAns = ((userAuth || isUserbypassAuth)) && (sessionManager.canUserAccessProject(username,lsId) ||
+          admin.includes(username));
+     if(!authAns && (userAuth || isUserbypassAuth)) {
+          console.error(`🟪☔️ Project Authentication failed for user: ${username}, lstoken: ${token}, lsId: ${lsId}`)
+     }
+     return authAns
 }
