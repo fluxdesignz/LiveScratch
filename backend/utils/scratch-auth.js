@@ -3,6 +3,7 @@ export const freePassesPath = 'storage/freePasses.json'
 export const failedAuthLog = {}
 export const secondTimeSuccessAuthLog = {};
 const authProjects = JSON.parse(process.env.AUTH_PROJECTS);
+const admin = JSON.parse(process.env.ADMIN);
 
 
 function logAuth(username, success, word, info) {

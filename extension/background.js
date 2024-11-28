@@ -241,10 +241,12 @@ async function backgroundScript() {
   async function testUserExists(username) {
     username = username.toLowerCase();
     if (username in userExistsStore) {
+      console.log(userExistsStore)
       return userExistsStore[username]
     } else {
       let res = await fetch(`${apiUrl}/userExists/${username}`);
       let answer = await res.json();
+      console.log(answer)
       userExistsStore[username] = answer;
 
       return answer;
@@ -435,8 +437,8 @@ async function backgroundScript() {
           })
         } else if (request.meta == 'getActive') {
           sendResponse(await (await fetch(`${apiUrl}/active/${request.id}`, { headers: { authorization: currentBlToken, uname } })).json())
-        } else if (request.meta == 'getPingUrl') {
-          sendResponse(await chrome.runtime.getURL("sounds/ping.mp3"))
+        } else if (request.meta == 'getUrl') {
+          sendResponse(await chrome.runtime.getURL(request.for))
         } else if (request.meta == 'isPingEnabled') {
           sendResponse((await chrome.storage.local.get(['ping'])).ping)
         } else if (request.meta == 'userExists') {

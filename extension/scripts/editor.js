@@ -207,7 +207,6 @@ async function joinExistingLivescratch(id) {
         startBLLoadingAnimation()
         // prompt(`Livescratch cannot load project data! The scratch api might be blocked by your network. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \n\nHere are your ids if you want to report this to @ilhp10:`,`LIVESCRATCH_ID: ${blId}; SCRATCH_REAL_ID: ${scratchId}; INPOINT_ID: ${inpoint.scratchId}`)
     }
-    //yo wussup poochdawg
 
     console.log('syncing new changes, editingTarget: ',vm.editingTarget)
     await getAndPlayNewChanges() // sync changes since scratch version
@@ -2088,7 +2087,7 @@ function createTagElement(username,color) {
     rect.setAttribute("rx", ".5rem")
     rect.classList.add("blockly-name-tag")
     rect.style.transform = "translate(0rem, -2.2rem)"
-    rect.setAttribute("fill", "rgb(238, 0, 255)")
+    rect.setAttribute("fill", "#58c198")
     return [text, rect]
 }
 
@@ -2153,7 +2152,7 @@ function resetBlock(outlineObj, username) {
 function setBlockStyles(blockId,blockElem,newStyles, username) {
     let styles = {}
     blockElem.style.transition = 'transform 0.5s'
-    selectBlock(blockElem, username,true,'rgb(238, 0, 255)')
+    selectBlock(blockElem, username,true,'#58c198')
     return {blockId,styles}
 }
 
@@ -2178,7 +2177,7 @@ function outlineBlock(blockId, username) {
     let blockElem = block.getSvgRoot();
 
     const blockResetDef = setBlockStyles(blockId,blockElem,
-        {'outline':'solid 8px rgb(255,0,113)'}, username
+        {'outline':'solid 8px #5fd2a5'}, username
     )
     BL_BlockOutlinesUsers[username] = blockResetDef;
     BL_BlockOutlinesBlocks[blockId] = blockResetDef;
@@ -2371,7 +2370,7 @@ let shareCSS = `
 
 .tag{
     position: absolute;
-    /* outline-color: rgb(255, 41, 216); */
+    /* outline-color: #58c198; */
     /* transform:translate(150px,50px) ;     */
     transform:translate(-110px,0px)  ;
 
@@ -2472,7 +2471,7 @@ justify-items:center;
     border-radius: 20px;
 }
 /* .pinkOutline{
-    outline-color: rgb(255, 41, 216);
+    outline-color: #58c198;
 }
 .blueOutline{
     outline-color: rgb(0, 99, 165);
@@ -2490,7 +2489,7 @@ justify-items:center;
 }
 
 .turnedOn path:not([data-shapes="round"] > path) {
-    stroke: rgb(255, 41, 216);
+    stroke: #58c198;
     stroke-width: 2.5px;
 }
 
@@ -2637,7 +2636,8 @@ function makeLivescratchButton(sharebutton) {
     button.style.paddingRight = '7px'
     button.style.gap = '7px'
     // button.style.background = ' linear-gradient(90deg, rgba(51,0,54,1) 0%, rgba(255,0,113,1) 60%)'
-    button.style.background = 'rgba(255,0,113,1)' // livescratch pink
+    button.style.background = '#5fd2a5' // livescratch green
+    button.style.color = '#0c1a15'
     button.style.display = 'flex'
     button.style.flexDirection = 'row'
 
@@ -2666,11 +2666,11 @@ function makeRevertButton(communityButton) {
     button.style.paddingRight = '7px'
     button.style.gap = '7px'
     // button.style.background = ' linear-gradient(90deg, rgba(51,0,54,1) 0%, rgba(255,0,113,1) 60%)'
-    // button.style.background = 'rgba(255,0,113,1)' // livescratch pink
+    // button.style.background = '#5fd2a5' // livescratch green
     button.style.display = 'flex'
     button.style.flexDirection = 'row'
-    button.style.backgroundColor = '#c2aaff'
-    button.style.color = '#a00000'
+    button.style.backgroundColor = '#ffffff4d'
+    button.style.color = '#322251'
 
     let text = document.createElement('text')
     text.style.textAlign = 'center'
@@ -2953,8 +2953,8 @@ function revertProject() {
     vm.loadProject(revertJSON)
 }
 
-let COLORS = ['teal','#c42b63']
-let COLORS_BRIGHT = ['#00b9d1','#ff00e6']
+let COLORS = ['teal','#c42b63', '#58c198']
+let COLORS_BRIGHT = ['#00b9d1','#ff00e6', '#5fd2a5']
 let yo_1 = Math.round(Math.random());
 
 function clearActive() {
@@ -3074,10 +3074,12 @@ setTimeout(reloadOnlineUsers,500)
 
 //////////////////// LOADING OVERLAY ////////////////////
 
+const logoUrl = document.querySelector('.livescratch-ext-2').dataset.logoUrl;
+
 const overlayHTML = `
 <loading-content>
-<img src="https://assets.scratch.mit.edu/9a5f5b45565e6e517bc39bba7d90395e.svg" id="ls-load-logo">
-<div class="ls-loading-text">Loading livescratch...</div>
+<img src="${logoUrl}" id="ls-load-logo">
+<div class="ls-loading-text">Loading LiveScratch...</div>
 </loading-content>
 </img>`
 const overlayCSS = `
@@ -3106,7 +3108,7 @@ livescratch-loading{
     font-style: italic;
     font-weight:500;
     font-size: 40px;
-    color:rgb(255, 0, 217);
+    color:#306852;
 
     transition: 0.34s;
     opacity: 0%;
@@ -3119,7 +3121,8 @@ livescratch-loading{
     scale:400%;
     opacity: 0%;
     transition: 0.34s;
-
+    margin-bottom: 10px;
+    filter: drop-shadow();
 }
 
 @keyframes ls-logo-loading {
@@ -3146,7 +3149,7 @@ function startBLLoadingAnimation() {
     try{
         document.querySelector('livescratch-loading').style.display = 'block'
         document.querySelector('livescratch-loading').style.backdropFilter = ' blur(12px)'
-        document.querySelector('#ls-load-logo').style.scale = '100%'
+        document.querySelector('#ls-load-logo').style.scale = '80%'
         document.querySelector('#ls-load-logo').style.opacity = '100%'
         document.querySelector('.ls-loading-text').style.opacity = '100%'
     } catch (e) {console.error(e)}
@@ -3254,7 +3257,7 @@ ls-chat-send-button{
     min-width: 34px;
     height: 34px;
     line-height: 35px;
-    background-color: rgb(255, 54, 171);
+    background-color: #4da583;
     color:white;
     border-radius: 12px;
     text-align: center;
@@ -3333,7 +3336,7 @@ ls-chat-head-x{
     height:20px;
     line-height: 16px;
     text-align: center;
-    background-color: rgb(200, 1, 104);
+    background-color: #397f64;
     margin-right:6px;
     color:white;
     transition: 0.2s scale;
@@ -3362,7 +3365,7 @@ ls-chat-head {
     height:45px;
     flex-shrink:0;
     /* min-height:45px; */
-    background-color: rgb(255, 0, 157);
+    background-color: #4da583;
     border-radius: 7px;
     box-shadow: 0px 0px 21px 0px rgba(0,0,0,0.5);
 }
@@ -3524,10 +3527,10 @@ function dragElement(elmnt) {
 // msg: {text, sender}
 lastSender = ''
 uname = ''
-let pingUrl = "https://assets.scratch.mit.edu/internalapi/asset/cf51a0c4088942d95bcc20af13202710.wav/get/";
-// chrome.runtime.sendMessage(exId,{meta:'getPingUrl'},url=>{
-//     pingUrl = url;
-// });
+let pingUrl;
+chrome.runtime.sendMessage(exId,{meta:'getUrl', for: '/sounds/ping.mp3'}, url=>{
+    pingUrl = url;
+});
 // credit https://stackoverflow.com/questions/2794137/sanitizing-user-input-before-adding-it-to-the-dom-in-javascript
 function sanitize(string) {
     string = String(string)
@@ -3666,7 +3669,7 @@ let spriteDisplayCSS = `
     width:20px;
     height:20px;
     border-radius:100%;
-    outline: solid 2px #ff24e2;
+    outline: solid 2px #58c198;
     background-size:cover;
 }
 `

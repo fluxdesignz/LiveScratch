@@ -92,7 +92,7 @@ function getbox(blId, title, scratchId, lastModified, lastModBy, projectExists, 
         </a>
       </div>
       <div class="media-info">
-        <span class="media-info-item title"><a style="color:#ff4ad5" href="/projects/${scratchId}/">${title}</a></span>
+        <span class="media-info-item title"><a style="color:rgb(88, 193, 152)" href="/projects/${scratchId}/">${title}</a></span>
       	<span class="media-info-item date shortDateFormat">
         
           Last modified: ${timeSince(new Date(lastModified))} ago by ${lastModBy}
@@ -111,7 +111,7 @@ function getbox(blId, title, scratchId, lastModified, lastModBy, projectExists, 
 
       </div>
       <div class="media-action">
-	      <div><a class="media-trash" style="color:#ff4ad5" onclick="leaveId(${scratchId},this.parentElement.parentElement.parentElement.parentElement);sendLeave(${scratchId},${blId})">${projectExists ? "Unlink" : "Leave"}</a></div>
+	      <div><a class="media-trash" style="color:rgb(88, 193, 152)" onclick="leaveId(${scratchId},this.parentElement.parentElement.parentElement.parentElement);sendLeave(${scratchId},${blId})">${projectExists ? "Unlink" : "Leave"}</a></div>
       </div>
     </div>`;
 }
@@ -146,7 +146,7 @@ let pageCss = `
   .onlineBubble{
     height:26px;
     width:26px;
-    outline:solid 3px #ff4ad5;
+    outline:solid 3px rgb(88, 193, 152);
     border-radius:10px;
     background-size:100% auto;
     text-shadow:none;
@@ -169,7 +169,7 @@ let pageCss = `
 
 .onlineBubble::after {
     content: var(--bubbleUsername);
-    background: #ff4ad5;
+    background: rgb(88, 193, 152);
     color: white;
     padding: 1px;
     border-radius: 5px;
@@ -261,8 +261,8 @@ let oldAttrs = {}
 async function convertToLivescratch(listItem, projectObj) {
   let atts = {}
   atts.color = listItem.children[0].children[1].children[0].children[0].style.color
-  listItem.children[0].children[1].children[0].children[0].style.color = '#ff4ad5'
-  listItem.children[0].children[2].children[0].children[0].style.color = '#ff4ad5'
+  listItem.children[0].children[1].children[0].children[0].style.color = 'rgb(88, 193, 152)'
+  listItem.children[0].children[2].children[0].children[0].style.color = 'rgb(88, 193, 152)'
 
   atts.buttonText = listItem.children[0].children[2].children[0].children[0].innerText
   listItem.children[0].children[2].children[0].children[0].innerText = 'Unlink'

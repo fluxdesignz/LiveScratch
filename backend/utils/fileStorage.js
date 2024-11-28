@@ -160,6 +160,10 @@ async function saveAsync(sessionManager) {
 
      console.log('saving now...')
      await sleep(10); // in case there is an error that nans lastid out
+
+     const dirPath = path.dirname(lastIdPath);
+     await fsp.mkdir(dirPath, { recursive: true });
+
      await fsp.writeFile(lastIdPath,(sessionManager.lastId).toString());
      await fsp.writeFile(freePassesPath,JSON.stringify(freePasses))
 

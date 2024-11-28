@@ -1,3 +1,6 @@
+var version = chrome.runtime.getManifest().version;
+document.querySelector('#version').innerHTML = 'v'+version;
+
 async function getProjects() {
   let info = await chrome.runtime.sendMessage({meta:'getUsernamePlus'})
   let apiUrl = info.apiUrl;
@@ -10,6 +13,12 @@ async function getProjects() {
       {headers:{authorization:blToken}}
     )
   ).json();
+  if (data.length === 0) {
+    var span = document.createElement("span");
+    span.className = "title";
+    span.textContent = "Nothing here! LiveScratch share a project to see it here!";
+    document.querySelector(".projects").appendChild(span);
+  }
   data.forEach(function (project) {
     var div = document.createElement("div");
     div.className = "project";
