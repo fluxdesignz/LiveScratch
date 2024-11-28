@@ -1,0 +1,40 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Set environment variables from GitHub Secrets
+        run: |
+          echo "PORT=4000" >> $GITHUB_ENV
+          echo "CHAT_WEBHOOK_URL=${{ secrets.CHAT_WEBHOOK_URL }}" >> $GITHUB_ENV
+          echo "ADMIN_USER=${{ secrets.ADMIN_USER }}" >> $GITHUB_ENV
+          echo "AUTH_PROJECTS=["728098174"]" >> $GITHUB_ENV
+          echo "ADMIN=["Waakul"]" >> $GITHUB_ENV
+
+      - name: Deploy to server using PM2
+        run: |
+          ssh -i ${{ secrets.SSH_PRIVATE_KEY }} shamil@server1.waakul.com 'cd /home/shamil/livescratch && git pull origin master && cd backend && npm install && ./node_modules/.bin/pm2 reload ecosystem.config.cjs --env production'
+        env:
+          PORT: 4000
+          CHAT_WEBHOOK_URL: ${{ secrets.CHAT_WEBHOOK_URL }}
+          ADMIN_USER: ${{ secrets.ADMIN_USER }}
+          AUTH_PROJECTS: ["728098174"]
+          ADMIN: ["Waakul"]
