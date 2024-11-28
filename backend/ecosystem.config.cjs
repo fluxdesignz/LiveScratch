@@ -12,7 +12,6 @@ module.exports = {
             killTimeout: 60000,
             env: {
                 PORT: process.env.PORT,
-                MONGO_URI: process.env.MONGO_URI,
                 CHAT_WEBHOOK_URL: process.env.CHAT_WEBHOOK_URL,
                 ADMIN_USER: process.env.ADMIN_USER,
                 AUTH_PROJECTS: process.env.AUTH_PROJECTS,
