@@ -203,7 +203,7 @@ async function joinExistingLivescratch(id) {
         blVersion = inpoint.version
     } catch (e) {
         finishBLLoadingAnimation()
-        prompt(`Scratch couldn't load the project JSON we had saved for this project. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \nError: \n${e} \n\nSend this livescratch id to @ilhp10 on scratch:`,`${blId};`)
+        prompt(`Scratch couldn't load the project JSON we had saved for this project. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \nError: \n${e} \n\nSend this livescratch id to @Waakul on scratch:`,`${blId};`)
         startBLLoadingAnimation()
         // prompt(`Livescratch cannot load project data! The scratch api might be blocked by your network. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \n\nHere are your ids if you want to report this to @ilhp10:`,`LIVESCRATCH_ID: ${blId}; SCRATCH_REAL_ID: ${scratchId}; INPOINT_ID: ${inpoint.scratchId}`)
     }

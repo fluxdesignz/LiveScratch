@@ -387,7 +387,7 @@ chrome.runtime.sendMessage(exId, { meta: 'getUsernamePlus' }, async (userData) =
         if(error=='no cloud') {
           document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;"><span id="bigx" style="display:none; padding:3px; border-radius:50%; background:lightpink; color:maroon; cursor:pointer;" onclick="document.querySelector('#unverified').remove()">&nbspx&nbsp</span>⚠️ Livescratch could not verify your account because the cloud data 'set' action failed. Scratch's cloud data servers might be down, causing this issue. Click 'hide verify' below to silence this message.`)
         } else {
-          document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;"><span id="bigx" style="display:none; padding:3px; border-radius:50%; background:lightpink; color:maroon; cursor:pointer;" onclick="document.querySelector('#unverified').remove()">&nbspx&nbsp</span>⚠️ Livescratch could not verify your account. Reload the tab in a few seconds. If this issue continues, contact @ilhp10 or @rgantzos <span style="text-decoration:underline; cursor:pointer; color:blue;" onclick="chrome.runtime.sendMessage(exId,{meta:'getVerifyError'},err=>prompt('This error occured during client verification. Comment it on @ilhp10 or @rgantzos profile',err))">See Error Msg</span>`)
+          document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;"><span id="bigx" style="display:none; padding:3px; border-radius:50%; background:lightpink; color:maroon; cursor:pointer;" onclick="document.querySelector('#unverified').remove()">&nbspx&nbsp</span>⚠️ Livescratch could not verify your account. Reload the tab in a few seconds. If this issue continues, contact @Waakul<span style="text-decoration:underline; cursor:pointer; color:blue;" onclick="chrome.runtime.sendMessage(exId,{meta:'getVerifyError'},err=>prompt('This error occured during client verification. Comment it on @Waakul',err))">See Error Msg</span>`)
         }
         
       }
@@ -412,7 +412,7 @@ chrome.runtime.sendMessage(exId, { meta: 'getUsernamePlus' }, async (userData) =
         document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="verifying" style="background:#ea47ff; color:white;"><img height=15 src="https://upload.wikimedia.org/wikipedia/commons/a/ad/YouTube_loading_symbol_3_%28transparent%29.gif"/> Livescratch is verifying your account ...<div>`)
       } else {
         if (newVerified) { return }
-        document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;">⚠️ Livescratch could not verify your account. Reload the tab in a few seconds. If this issue continues, contact @ilhp10 or @rgantzos<div>`)
+        document.querySelector('.box-head').insertAdjacentHTML('afterend', `<div class="blBanner" id="unverified" style="background:red; color:white;">⚠️ Livescratch could not verify your account. Reload the tab in a few seconds. If this issue continues, contact @Waakul<div>`)
       }
     })
 
