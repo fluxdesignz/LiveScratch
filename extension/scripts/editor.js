@@ -2319,7 +2319,7 @@ let shareCSS = `
     background: rgba(255,255,255,0.2);
 }
 .livescratchloader {
-    border: 3px solid rgba(255,0,113,1);
+    border: 3px solid #5fd2a5;
     border-top: 3px solid white;
     border-bottom: 3px solid white;
     border-radius: 50%;
