@@ -1,4 +1,4 @@
-let apiUrl = "http://localhost:4000";
+let apiUrl = "https://livescratchapi.waakul.com";
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.meta === "getAPI-URL") {

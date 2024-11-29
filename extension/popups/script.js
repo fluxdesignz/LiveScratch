@@ -139,7 +139,7 @@ document.getElementById('link-uptime').onclick = () => {
     chrome.tabs.create({ url: `https://status.uptime-monitor.io/67497373f98a6334aaea672d` });
 }
 document.getElementById('link-donate').onclick = () => {
-    chrome.tabs.create({ url: `https://buymeacoffee.com/waakul` });
+    chrome.tabs.create({ url: `https://ko-fi.com/waakul` });
 }
 
 (async () => {
