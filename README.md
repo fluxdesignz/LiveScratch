@@ -1,5 +1,7 @@
 # LiveScratch
 Real time collaboration extension for scratch!
+- 🟢: UPTIME: https://status.uptime-monitor.io/67497373f98a6334aaea672d
+- ☕: DONATE: https://ko-fi.com/waakul
 # Run locally
 - `git clone https://github.com/Waakul/LiveScratch.git`
 - cd livescratch/backend
