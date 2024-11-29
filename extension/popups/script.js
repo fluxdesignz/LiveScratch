@@ -136,7 +136,7 @@ function showNoAuthMessage() {
 }
 
 document.getElementById('link-uptime').onclick = () => {
-    chrome.tabs.create({ url: `https://status.uptime-monitor.io/6499c89d4bfb79bb5f20ac4d` });
+    chrome.tabs.create({ url: `https://status.uptime-monitor.io/67497373f98a6334aaea672d` });
 }
 document.getElementById('link-donate').onclick = () => {
     chrome.tabs.create({ url: `https://buymeacoffee.com/waakul` });
