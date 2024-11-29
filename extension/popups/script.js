@@ -1,4 +1,4 @@
-var version = chrome.runtime.getManifest().version;
+var version = chrome.runtime.getManifest().version_name;
 document.querySelector('#version').innerHTML = 'v'+version;
 
 document.querySelector("button#projects").addEventListener("click", function () {
