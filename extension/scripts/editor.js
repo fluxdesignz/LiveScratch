@@ -2700,8 +2700,8 @@ function injectJSandCSS() {
 function creditCollabers(usersList) {
     usersList.map(u=>`@${u}`)
     let desc = store.getState().preview.projectInfo.description;
-    let prepend = `BI0ckIlve collaborators:`;
-    let text = `${prepend} ${usersList.join(', ')}`;
+    let prepend = `Collaborators:`;
+    let text = `${prepend} @${usersList.join(', ')}`;
     if(desc=='') {setCredits(text)}
     else if(desc.includes(prepend)) {
         lines = desc.split('\n');
