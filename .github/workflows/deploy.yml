@@ -1,0 +1,58 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the latest code from GitHub repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      # Install dependencies (for the local build, if necessary)
+      - name: Install dependencies
+        run: npm install
+
+      # Set environment variables from GitHub Secrets
+      - name: Set environment variables from GitHub Secrets
+        run: |
+          echo "PORT=4000" >> $GITHUB_ENV
+          echo "CHAT_WEBHOOK_URL=${{ secrets.CHAT_WEBHOOK_URL }}" >> $GITHUB_ENV
+          echo "ADMIN_USER=${{ secrets.ADMIN_USER }}" >> $GITHUB_ENV
+          echo "AUTH_PROJECTS=\"[\"728098174\"]\"" >> $GITHUB_ENV
+          echo "ADMIN=\"[\"Waakul\"]\"" >> $GITHUB_ENV
+
+      # Deploy the code to the server using PM2
+      - name: Deploy to server using PM2
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no shamil@server1.waakul.com << 'EOF'
+            # Navigate to the backend directory
+            cd /home/shamil/livescratch
+
+            # Pull the latest changes from Git
+            git pull origin master
+
+            # Navigate to the backend directory and install dependencies
+            cd backend
+            npm install
+
+            # Reload the app with PM2
+            ./node_modules/.bin/pm2 reload ecosystem.config.cjs --env production
+          EOF
+        env:
+          PORT: 4000
+          CHAT_WEBHOOK_URL: ${{ secrets.CHAT_WEBHOOK_URL }}
+          ADMIN_USER: ${{ secrets.ADMIN_USER }}
+          AUTH_PROJECTS: "[\"728098174\"]"
+          ADMIN: "[\"Waakul\"]"
