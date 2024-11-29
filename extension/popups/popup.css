@@ -379,7 +379,6 @@ footer {
 }
 
 #links a img{
-  width: 20px;
   height: 20px;
 }
 
@@ -451,13 +450,17 @@ hr {
   left: 125%;  
 }
 #links a#link-donate {
-  background-color: #ffdd00;
+  background-color: #202020;
   text-decoration: none;
   padding-inline: 7px;
 }
 
+#links a#link-donate img {
+  height: 15px;
+}
+
 #links a#link-donate span {
-  color: #0d0c23;
+  color: #ffffff;
   font-family: "Cookie", cursive;
   font-size: 18px;
 }

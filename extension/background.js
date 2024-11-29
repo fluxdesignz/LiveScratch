@@ -14,13 +14,12 @@ let upk = undefined;
 
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
-    chrome.tabs.create({ url: 'https://buymeacoffee.com/ilhp10' })
+    chrome.tabs.create({ url: 'https://ko-fi.com/waakul' })
     chrome.tabs.create({ url: 'https://sites.google.com/view/livescratch/home' })
 
   } else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
 
     chrome.tabs.create({url:'https://sites.google.com/view/livescratch/new-livescratch-version'})
-    // chrome.tabs.create({url:'https://buymeacoffee.com/ilhp10'})
   }
 })
 
