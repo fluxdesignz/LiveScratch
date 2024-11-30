@@ -128,7 +128,7 @@ info {
 }
 
 .project .title {
-  color: #ffffff;
+  color: var(--Text);
   margin-top: 0.5px;
   display: block;
   font-weight: bold;
