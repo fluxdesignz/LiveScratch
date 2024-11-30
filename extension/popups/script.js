@@ -1,10 +1,69 @@
 var version = chrome.runtime.getManifest().version_name;
 document.querySelector('#version').innerHTML = 'v'+version;
 
+document.getElementById("server-url").defaultValue = "https://livescratchapi.waakul.com";
+
+{
+    (async () => {
+        const data = await chrome.storage.local.get("custom-server");
+        const value = data["custom-server"];
+
+        document.getElementById("server-url").disabled = !value;
+        document.getElementById("custom-server").checked = !!value;
+    })()
+}
+{
+    (async () => {
+        const data = await chrome.storage.local.get("server-url");
+        const serverUrlValue = data["server-url"];
+
+        document.getElementById("server-url").value = serverUrlValue || "https://livescratchapi.waakul.com";
+    })()
+}
+
 document.querySelector("button#projects").addEventListener("click", function () {
     chrome.tabs.create({
         url: "/projects/index.html"
     })
+})
+
+function validateUrl(input) {
+    const value = input.value;
+    const regex = new RegExp("^[a-zA-Z]+:\/\/([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)$");
+    return regex.test(value);
+}
+
+document.querySelector("input#custom-server").addEventListener("change", function () {
+    const input = document.querySelector("input#custom-server");
+    const serverUrlField = document.getElementById("server-url");
+    
+    const value = input.checked;
+    console.log(value)
+    chrome.storage.local.set({ "custom-server": value });
+    serverUrlField.disabled = !value;
+
+    if (serverUrlField.value!=="https://livescratchapi.waakul.com") {
+        chrome.storage.local.set({'apiUpdateReload': true})
+        chrome.runtime.reload();
+    }
+});
+
+document.querySelector("input#server-url").addEventListener("change", function () {
+    value = document.querySelector("input#server-url").value;
+    if (!value) {
+        document.querySelector("input#server-url").value = "https://livescratchapi.waakul.com";
+        chrome.storage.local.set({"server-url": "https://livescratchapi.waakul.com"});
+    } else {
+        valid = validateUrl(document.querySelector("input#server-url"));
+        console.log(valid)
+        if (valid) {
+            chrome.storage.local.set({"server-url": value});
+        } else {
+            document.querySelector("input#server-url").value = "https://livescratchapi.waakul.com";
+            chrome.storage.local.set({"server-url": "https://livescratchapi.waakul.com"});
+        }
+    }
+    chrome.runtime.reload();
 })
 
 document.querySelectorAll("button.credit").forEach(function(credit){

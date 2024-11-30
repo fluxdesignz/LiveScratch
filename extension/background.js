@@ -1,4 +1,34 @@
+const getApiUrl = async () => {
+  // Return a promise that resolves to the URL
+  const getStorageValue = (key) => {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(key, (result) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve(result[key]);
+        }
+      });
+    });
+  };
+
+  const customServer = await getStorageValue("custom-server");
+
+  return customServer
+    ? await getStorageValue("server-url") || "https://livescratchapi.waakul.com"
+    : "https://livescratchapi.waakul.com";
+};
+
 let apiUrl = "https://livescratchapi.waakul.com";
+const loadUrl = async () => {
+  try {
+    apiUrl = await getApiUrl();
+  } catch (error) {
+    console.error("Failed to get the API URL:", error);
+  }
+};
+
+loadUrl();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.meta === "getAPI-URL") {
@@ -12,13 +42,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 let uname = "*";
 let upk = undefined;
 
-chrome.runtime.onInstalled.addListener((details) => {
+chrome.runtime.onInstalled.addListener(async (details) => {
+  console.log(await (await chrome.storage.local.get("apiUpdateReload"))["apiUpdateReload"]);
+  if (await (await chrome.storage.local.get("apiUpdateReload"))["apiUpdateReload"]) {chrome.storage.local.set({"apiUpdateReload": false}); return}
   if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
     chrome.tabs.create({ url: 'https://ko-fi.com/waakul' })
     chrome.tabs.create({ url: 'https://livescratch.waakul.com' })
 
   } else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
-    chrome.tabs.create({url:'https://livescratch.waakul.com/new-release'})
+    chrome.tabs.create({url: 'https://livescratch.waakul.com' /*'https://livescratch.waakul.com/new-release'*/})
   }
 })
 

@@ -464,3 +464,14 @@ hr {
   font-family: "Cookie", cursive;
   font-size: 18px;
 }
+
+#server-url {
+  background-color: var(--Sub);
+  color: var(--Text);
+  border: 0.78px solid var(--Sub);
+  border-radius: 5px;
+}
+
+#server-url:disabled {
+  opacity: 0.7;
+}
