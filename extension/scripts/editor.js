@@ -203,7 +203,7 @@ async function joinExistingLivescratch(id) {
         blVersion = inpoint.version
     } catch (e) {
         finishBLLoadingAnimation()
-        prompt(`Scratch couldn't load the project JSON we had saved for this project. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \nError: \n${e} \n\nSend this livescratch id to @ilhp10 on scratch:`,`${blId};`)
+        prompt(`Scratch couldn't load the project JSON we had saved for this project. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \nError: \n${e} \n\nSend this livescratch id to @Waakul on scratch:`,`${blId};`)
         startBLLoadingAnimation()
         // prompt(`Livescratch cannot load project data! The scratch api might be blocked by your network. Clicking OK or EXIT will attempt to load the project from the changelog, which may take a moment. \n\nHere are your ids if you want to report this to @ilhp10:`,`LIVESCRATCH_ID: ${blId}; SCRATCH_REAL_ID: ${scratchId}; INPOINT_ID: ${inpoint.scratchId}`)
     }
@@ -2541,27 +2541,49 @@ justify-items:center;
 usersCache = {}
 
 async function getUserInfo(username) {
-    if(!username) {return}
-    if(username?.toLowerCase() in usersCache && usersCache[username?.toLowerCase()]?.pk) {return usersCache[username?.toLowerCase()]}
-
-    let res
-    try{ 
-        res=await (await fetch('https://scratch.mit.edu/site-api/users/all/' + username?.toLowerCase())).json()
-    } catch(e) {
-        return null
-    }
-    if(!res) {
-        return null
+    if (!username) { return; }
+    if (username?.toLowerCase() in usersCache && usersCache[username?.toLowerCase()]?.pk) {
+        return usersCache[username?.toLowerCase()];
     }
 
-    let user = res.user
-    user = getWithPic(user)
-    usersCache[user.username.toLowerCase()] = user
-    return user
+    let res;
+    try {
+        res = await (await fetch('https://scratch.mit.edu/site-api/users/all/' + username?.toLowerCase())).json();
+    } catch (e) {
+        return null;
+    }
+    if (!res) {
+        return null;
+    }
+
+    let user = res.user;
+    user = await getWithPic(user, username);
+    try {
+        usersCache[user.username.toLowerCase()] = user;
+    } catch {
+        user = await getWithPic({ username: username }, username);
+        usersCache[username.toLowerCase()] = user;
+    }
+    return user;
 }
-function getWithPic(user) {
-    user.pic = `https://uploads.scratch.mit.edu/get_image/user/${user.pk}_60x60.png`
-    return user
+
+async function getWithPic(user, username = null) {
+    if (username !== null && username === "livescratch") {
+        const url = await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage(exId, { meta: 'getUrl', for: '/img/LogoLiveScratch.svg' }, (url) => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(url);
+                }
+            });
+        });
+        user.pic = url;
+        return user;
+    } else {
+        user.pic = `https://uploads.scratch.mit.edu/get_image/user/${user.pk}_60x60.png`;
+        return user;
+    }
 }
 
 
@@ -3247,6 +3269,7 @@ ls-msg-sender{
 ls-msg-sender-img{
     background-image: url(https://uploads.scratch.mit.edu/get_image/user/default_60x60.png);
     background-size: contain;
+    background-repeat: no-repeat;
     width:25px;
     height:25px;
     border-radius: 10px;

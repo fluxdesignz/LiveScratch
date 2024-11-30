@@ -258,7 +258,7 @@ class ProjectWrapper {
     sharedWith = []
 
     chat = []
-    static defaultChat = { sender: 'livescratch', text: 'Welcome! Chat is public, monitored, and filtered. Report inappropriate things to @ilhp10. Drag the top of this chatbox to move it and drag the bottom right to resize it!' }
+    static defaultChat = { sender: 'livescratch', text: 'Welcome! Chat is public, monitored, and filtered. Report inappropriate things to @Waakul. Drag the top of this chatbox to move it and drag the bottom right to resize it!' }
 
     constructor(owner, scratchId, projectJson, blId, title) {
         if (owner == '&') { return }
