@@ -21,6 +21,14 @@ document.getElementById("server-url").defaultValue = "https://livescratchapi.waa
     })()
 }
 
+let settingsDropdown = false;
+document.getElementById("settings").style.display = settingsDropdown ? "flex" : "none";
+document.getElementById("settings-dropdown").addEventListener("click", function() {
+    settingsDropdown = !settingsDropdown;
+    console.log(settingsDropdown)
+    document.getElementById("settings").style.display = settingsDropdown ? "flex" : "none";
+});
+
 document.querySelector("button#projects").addEventListener("click", function () {
     chrome.tabs.create({
         url: "/projects/index.html"

@@ -475,3 +475,12 @@ hr {
 #server-url:disabled {
   opacity: 0.7;
 }
+
+#settings {
+  padding-left: 5px;
+  display: flex;
+}
+
+#settings-dropdown {
+  cursor: pointer;
+}
