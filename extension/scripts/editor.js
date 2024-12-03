@@ -163,7 +163,7 @@ async function onTabLoad() {
     let reactInst = Object.values(await getObj('div[class^="stage-wrapper_stage-wrapper_"]')).find((x) => x.child)
     vm = reactInst.child.child.child.stateNode.props.vm;
     store = reactInst.child.child.child.stateNode.context.store
-    addButtonInjectors()
+    addButtonInjectors();
     blId = isNaN(parseFloat(location.pathname.split('/')[2])) ? '' : await getBlocklyId(scratchId); //todo: should this use the result of the getBlId function, or a more specific endpoint to authenticating project joining?
     if(!blId) {
         chrome.runtime.sendMessage(exId,{meta:'callback'},(request) => { if(request.meta == 'initLivescratch') { 
@@ -174,8 +174,8 @@ async function onTabLoad() {
         startLivescratch()
     } else {
     }
-
 }
+
 onTabLoad()
 
 async function joinExistingLivescratch(id) {
@@ -2649,9 +2649,8 @@ function refreshShareModal() {
 
 function makeLivescratchButton(sharebutton) {
 
-    
-
     let button = document.createElement('livescratch-init')
+    button.id = "lsShare";
     button.className = Array.from(sharebutton.classList).filter(e=>e.includes('button_outlined-button')||e.includes('menu-bar_menu-bar-button')).join(' ')
     button.style.marginRight = '20px'
     button.style.paddingLeft = '7px'
@@ -2849,6 +2848,7 @@ function doIOwnThis() {
 function addButtonInjectors() {
 listenForObj('span[class*="share-button_share-button"]',
     (shareButton)=>{
+        if(document.querySelector("livescratch-init")!==null) {return}
         // bc.children[1].children[0].innerHTML = "Become Blajingus"
 
         let container = document.createElement('livescratchContainer')
@@ -2893,7 +2893,7 @@ listenForObj('span[class*="share-button_share-button"]',
 
 //// Inject active users display
 listenForObj('[class*="menu-bar_account-info-group"]',(accountInfo)=>{
-   
+    if(document.querySelector("livescratch-init")!==null) {return}
     let topBar = accountInfo.parentElement;
 
     // add panel
