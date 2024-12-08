@@ -1,266 +1,133 @@
-import Lines from 'n-readlines'
-
-export class WordCompressor {
-    collapseMap = {}
-    removeWords = []
-    okWords = {}
-    allChars='abcdefghijklmnopqrstuvwxyz '
-
-    addOkWord(word) {
-        this.okWords[word] = true
-    }
-    removeOkWords(phrase) {
-        phrase.split(' ').forEach(originalWord=>{
-            let word = originalWord.toLowerCase()
-            if(word in this.okWords) {
-                phrase = phrase.replace(originalWord,'')
-            }
-        })
-        return phrase
-    }
-
-    addMapping(list, to) {
-        list.forEach(key => {
-            this.collapseMap[key] = to
-        });
-    }
-
-    setAllChars(allChars) {
-        this.allChars=allChars;
-    }
-
-    getOnlyAllChars(phrase) {
-        let regex = new RegExp(`[^${this.allChars}]`,'g')
-        return phrase.replace(regex,'')
-    }
-
-    addRemove(bit) {
-        this.removeWords.push(bit)
-    }
-
-    shear(phrase) {
-        this.removeWords.forEach(bit => { phrase = phrase.split(bit).join('') })
-        return phrase
-    }
-
-    compress(word) {
-
-        // this.removeWords.forEach(bit => { word = word.split(bit).join('') })
-
-        word = this.shear(word)
-        // word = this.singleChars(word)
-
-
-        for (let i = 0; i < word.length - 1; i += 1) {
-            let char = '' + word[i] + word[i + 1]
-            if (char == '' + char[0] + char[0]) {
-                word = this.setCharAt(word, i, '')
-                i -= char.length - 1
-            }
-        }
-
-
-        for (let i = 0; i < word.length - 1; i += 1) {
-            let char = '' + word[i] + word[i + 1]
-            if (char in this.collapseMap) {
-                for (let j = 0; j < char.length - 1; j++) {
-                    word = this.setCharAt(word, i + 1, '')
-                }
-                word = this.setCharAt(word, i, this.collapseMap[char])
-                i -= char.length - 1
-                i += this.collapseMap[char].length - 1
-            }
-        }
-        word = this.getOnlyAllChars(word) // remove non letters and numbers
-
-        word = this.singleChars(word)
-
-
-
-        for (let i = 0; i < word.length - 1; i += 1) {
-            let char = '' + word[i] + word[i + 1]
-            if (char == '' + char[0] + char[0]) {
-                word = this.setCharAt(word, i, '')
-                i -= char.length - 1
-            }
-        }
-
-
-        word = this.singleChars(word)
-
-        return word
-    }
-
-    singleChars(word) {
-        for (let i = 0; i < word.length; i += 1) {
-            let char = word[i]
-            if (char in this.collapseMap) {
-                word = this.setCharAt(word, i, this.collapseMap[char])
-            }
-        }
-        return word
-    }
-
-    setCharAt(str, index, chr) {
-        if (index > str.length - 1) return str;
-        return str.substr(0, index) + chr + str.substr(index + 1);
-    }
-}
-
-
-
-export const StringTreeNode = class {
-
-    isEnd = false
-
-    constructor() {
-        this.addString = (string, i) => {
-            this.summon(string, i).isEnd = true;
-        }
-        this.summon = (string, i) => {
-            if (i >= string.length) { return this }
-            let ch = string[i];
-            // console.log(ch)
-            let ret = this[ch];
-            if (ret == null) {
-                ret = new StringTreeNode();
-                this[ch] = ret
-            }
-            return ret.summon(string, i + 1)
-        }
-        this.containsString = (string, i) => {
-            if (this.isEnd) { return true }
-            let next = this[string[i]]
-            // console.log(string[i])
-            if (next == null) { return false }
-            if (next.isEnd) { return true }
-            return this[string[i]].containsString(string, i + 1)
-        }
-
-    }
-
-
-}
-
-
-
-
-export class SubstringTester {
-
-    constructor() {
-        this.root = new StringTreeNode();
-    }
-
-    addWord(word) {
-        this.root.addString(word, 0)
-        this.words[word] = true
-    }
-
-    removeWord(word) {
-        if (word in words) { return false }
-        root.summon(word, 0).isEnd = false
-    }
-
-    containsWord(phrase) {
-        // console.log(this.root)
-        for (let i = 0; i < phrase.length; i++) {
-            if (this.root.containsString(phrase, i)) { return true }
-        }
-        return false
-    }
-
-
-
-    words = {}
-
-}
-
+import axios from 'axios';
+import fs from 'fs/promises';
+import path from 'path';
 
 export class Filter {
-
-    spaceWords = {}
-    addSpaceWord(word) {
-        this.spaceWords[word] = true;
-    }
-
-    hasSpaceWord(phrase) {
-        for(let word of phrase.split(' ')) {
-            if(word in this.spaceWords) {return true} // hello -> hello
-            if(this.compressor.compress(word) in this.spaceWords) {return true} // jjjjacket -> jacket
-        }
-        return false;
-    }
-
     constructor() {
-        this.compressor = new WordCompressor();
-        this.tester = new SubstringTester();
+        this.apiUserId = process.env.NEUTRINOAPI_USERID; // Your NeutrinoAPI user ID
+        this.apiKey = process.env.NEUTRINOAPI_KEY; // Your NeutrinoAPI key
+        this.catalog = 'strict'; // Use the "strict" catalog for filtering
+        this.cacheFolder = path.resolve('filter_cache'); // Folder for caching results
     }
 
-    loadDefault() {
-        let c = this
-        c.addMapping(['o', '0', 'O'], 'o')
-        c.addMapping([' ', '-', '_', '*', '+', '^', '.'], '')
-        // c.addMapping(['z'], 's')
-        // c.addMapping(['q'], 'p')
-        c.addMapping(['ck'], 'c')
-        c.addMapping(['k'], 'c')
-        c.addMapping(['$'], 's')
-        // c.addMapping(['3'], 'e')
-        // c.addMapping(['5'], 's')
-        c.addMapping(['ch'], 'x')
-        c.addMapping(['1', 'l'], 'i')
-        c.addMapping(['e'],'i') // experimental mapping
-        // c.addMapping(['cc'], 'ch')
-
-        this.compressor.setAllChars('abcdefghijklmnopqrstuvwxyz123456789 ')
-
-        let lines = new Lines('./filterwords/badwords.txt')
-        let line;
-        while (line = lines.next()) {
-            c.addWord(line.toString('ascii'));
-        }
-
-        lines = new Lines('./filterwords/badwordsNoComp.txt')
-        while (line = lines.next()) {
-            this.tester.addWord(line.toString('ascii'));
-        }
-
-        lines = new Lines('./filterwords/bademojis.txt')
-        while (line = lines.next()) {
-            this.tester.addWord(line.toString());
-        }
-
-        lines = new Lines('./filterwords/okWords.txt')
-        while (line = lines.next()) {
-            this.compressor.addRemove(line.toString('ascii').toLowerCase());
-        }
-
-        lines = new Lines('./filterwords/spacewords.txt')
-        while (line = lines.next()) {
-            this.addSpaceWord(line.toString('ascii'))
-        }
-
-        lines = new Lines('./filterwords/processedOkSpaceWords.txt')
-        while (line = lines.next()) {
-            this.compressor.addOkWord(line.toString('ascii'))
+    /**
+     * Initialize the cache folder if it doesn't exist.
+     */
+    async initCache() {
+        try {
+            await fs.mkdir(this.cacheFolder, { recursive: true });
+        } catch (error) {
+            console.error('Error initializing cache folder:', error.message);
+            throw new Error('Failed to initialize cache folder');
         }
     }
 
-    addWord(word) {
-        this.tester.addWord(this.compressor.compress(word))
-        this.tester.addWord(word)
+    /**
+     * Generate a cache key for the given content.
+     * @param {string} content - The input string to hash for cache key.
+     * @returns {string} - The cache file name.
+     */
+    getCacheFileName(content) {
+        const sanitizedContent = content.replace(/[^a-zA-Z0-9]/g, '_'); // Simple sanitization
+        return path.join(this.cacheFolder, `${sanitizedContent}.json`);
     }
 
-    addMapping(from, to) {
-        this.compressor.addMapping(from, to)
+    /**
+     * Save the result to the cache.
+     * @param {string} content - The input content.
+     * @param {object} result - The result to cache.
+     */
+    async saveToCache(content, result) {
+        const fileName = this.getCacheFileName(content);
+        try {
+            await fs.writeFile(fileName, JSON.stringify(result, null, 2), 'utf-8');
+        } catch (error) {
+            console.error('Error saving to cache:', error.message);
+        }
     }
 
-    isVulgar(string) {
-        // string = this.compressor.removeOkWords(string)
-        return this.tester.containsWord(this.compressor.compress(string.toLowerCase())) || this.tester.containsWord(this.compressor.shear(string.toLowerCase() + " ")) || this.hasSpaceWord(string.toLowerCase())
+    /**
+     * Load a cached result if it exists.
+     * @param {string} content - The input content.
+     * @returns {object|null} - The cached result or null if not found.
+     */
+    async loadFromCache(content) {
+        const fileName = this.getCacheFileName(content);
+        try {
+            const data = await fs.readFile(fileName, 'utf-8');
+            return JSON.parse(data);
+        } catch (error) {
+            if (error.code !== 'ENOENT') {
+                console.error('Error loading from cache:', error.message);
+            }
+            return null;
+        }
     }
-    getCensored(string) {
-        return string.split(' ').map(word=>(word.toLowerCase() in this.compressor.okWords) ? word : '*'.repeat(word.length)).join(' ')
+
+    /**
+     * Check if the given content contains bad words.
+     * @param {string} content - The input string to check for profanity.
+     * @returns {Promise<{ isBad: boolean, badWordsTotal: number, badWordsList: string[], censoredContent: string }>}
+     */
+    async checkContent(content) {
+        await this.initCache();
+        
+        // Check cache first
+        const cachedResult = await this.loadFromCache(content);
+        if (cachedResult) {
+            return cachedResult;
+        }
+
+        // If not in cache, make API request
+        try {
+            const response = await axios.post('https://neutrinoapi.net/bad-word-filter', null, {
+                headers: {
+                    'User-ID': this.apiUserId,
+                    'API-Key': this.apiKey
+                },
+                params: {
+                    'catalog': this.catalog, // The strict catalog
+                    'censor-character': '*', // Character to replace bad words
+                    'content': content // The input content to analyze
+                }
+            });
+
+            const data = response.data;
+
+            const result = {
+                isBad: data['is-bad'], // Does the content contain bad words?
+                badWordsTotal: data['bad-words-total'], // Total number of bad words found
+                badWordsList: data['bad-words-list'], // Array of detected bad words
+                censoredContent: data['censored-content'] // The censored content
+            };
+
+            // Save result to cache
+            await this.saveToCache(content, result);
+
+            return result;
+        } catch (error) {
+            console.error('Error checking content:', error.response?.data || error.message);
+            throw new Error('Failed to process content with NeutrinoAPI');
+        }
+    }
+
+    /**
+     * Determines if the input text is vulgar.
+     * @param {string} text - The input text.
+     * @returns {Promise<boolean>} - Returns true if vulgar, otherwise false.
+     */
+    async isVulgar(text) {
+        const result = await this.checkContent(text);
+        return result.isBad;
+    }
+
+    /**
+     * Gets the censored version of the input text.
+     * @param {string} text - The input text.
+     * @returns {Promise<string>} - Returns the censored text.
+     */
+    async getCensored(text) {
+        const result = await this.checkContent(text);
+        return result.censoredContent || text; // Return censored content if available
     }
 }
-

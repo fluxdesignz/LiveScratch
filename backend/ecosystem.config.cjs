@@ -15,7 +15,9 @@ module.exports = {
                 CHAT_WEBHOOK_URL: process.env.CHAT_WEBHOOK_URL,
                 ADMIN_USER: process.env.ADMIN_USER,
                 AUTH_PROJECTS: process.env.AUTH_PROJECTS,
-                ADMIN: process.env.ADMIN
+                ADMIN: process.env.ADMIN,
+                NEUTRINOAPI_KEY: process.env.NEUTRINOAPI_KEY,
+                NEUTRINOAPI_USERID: process.env.NEUTRINOAPI_USERID,
             }
         }
     ]

@@ -37,7 +37,7 @@ document.querySelector("button#projects").addEventListener("click", function () 
 
 function validateUrl(input) {
     const value = input.value;
-    const regex = new RegExp("^[a-zA-Z]+:\/\/([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?)$");
+    const regex = new RegExp("^(https?:\/\/)([a-zA-Z0-9.-]+)(:[0-9]{1,5})?$");
     return regex.test(value);
 }
 
@@ -51,8 +51,9 @@ document.querySelector("input#custom-server").addEventListener("change", functio
     serverUrlField.disabled = !value;
 
     if (serverUrlField.value!=="https://livescratchapi.waakul.com") {
-        chrome.storage.local.set({'apiUpdateReload': true})
-        chrome.runtime.reload();
+        chrome.storage.local.set({'apiUpdateReload': true}).then(()=>{
+            chrome.runtime.reload();
+        });
     }
 });
 
@@ -71,7 +72,9 @@ document.querySelector("input#server-url").addEventListener("change", function (
             chrome.storage.local.set({"server-url": "https://livescratchapi.waakul.com"});
         }
     }
-    chrome.runtime.reload();
+    chrome.storage.local.set({'apiUpdateReload': true}).then(()=>{
+        chrome.runtime.reload();
+    });
 })
 
 document.querySelectorAll("button.credit").forEach(function(credit){

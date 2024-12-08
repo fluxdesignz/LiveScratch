@@ -7,8 +7,7 @@ const admin = JSON.parse(process.env.ADMIN);
 
 export default class initSockets {
     constructor(ioHttp, sessionManager, userManager) {
-        this.filter = new Filter()
-        this.filter.loadDefault()
+        this.filter = new Filter();
 
         this.sessionManager = sessionManager;
         this.userManager = userManager;
@@ -66,12 +65,13 @@ export default class initSockets {
                     postText(`broadcasting message to all users: "${broadcast}" [${sender}]`)
                     this.sessionManager.broadcastMessageToAllActiveProjects(`${broadcast}`)
                 }
-    
-                if(this.filter.isVulgar(text)) {
+                
+                const isVulgar = await this.filter.isVulgar(text);
+                if(isVulgar) {
                     let sentTo = project.session.getConnectedUsernames().filter(uname=>uname!=sender?.toLowerCase())
                     let loggingMsg = '🔴 FILTERED CHAT: ' + '"' + text + '" [' + sender + '->' + sentTo.join(',') + ' | scratchid: ' + project.scratchId + ']'
                     
-                    text = this.filter.getCensored(text)
+                    text = await this.filter.getCensored(text);
                     data.msg.msg.text = text
                     
                     loggingMsg = loggingMsg + `\nCensored as: "${text}"`

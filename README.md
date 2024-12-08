@@ -14,4 +14,5 @@ Real time collaboration extension for scratch!
 # Contribute
 Your free to go ahead and create a pull request for your work! It may be merged and you'll be credited!
 # Credits:
-- [@Waakul](https://github.com/Waakul) (Owner)
+- [@Waakul](https://github.com/Waakul) (Owner, Maintainer, Developer)
+- The original code this was developed from is made by [@MeechaPooch](https://github.com/meechapooch) and [@rgantzos](https://github.com/rgantzos) from [Blocklive](https://github.com/BlockliveScratch/Blocklive)

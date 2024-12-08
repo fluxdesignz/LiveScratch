@@ -1,34 +1,60 @@
-const getApiUrl = async () => {
-  // Return a promise that resolves to the URL
-  const getStorageValue = (key) => {
-    return new Promise((resolve, reject) => {
-      chrome.storage.local.get(key, (result) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve(result[key]);
-        }
-      });
-    });
+// monkey-patch before importing socket.io.js
+self.addEventListener = (function (original) {
+  return function (type, listener, options) {
+      if (type === "beforeunload") {
+          console.warn("Ignoring 'beforeunload' listener in service worker context.");
+          return;
+      }
+      return original.call(self, type, listener, options);
   };
+})(self.addEventListener);
 
+importScripts('background/socket.io.js', 'background/livescratchProject.js', 'background/auth.js');
+
+const getStorageValue = (key) => {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(key, (result) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result[key]);
+      }
+    });
+  });
+};
+
+const getApiUrl = async () => {
   const customServer = await getStorageValue("custom-server");
 
-  return customServer
-    ? await getStorageValue("server-url") || "https://livescratchapi.waakul.com"
-    : "https://livescratchapi.waakul.com";
-};
-
-let apiUrl = "https://livescratchapi.waakul.com";
-const loadUrl = async () => {
-  try {
-    apiUrl = await getApiUrl();
-  } catch (error) {
-    console.error("Failed to get the API URL:", error);
+  if (customServer) {
+    const serverUrl = await getStorageValue("server-url");
+    return serverUrl || "https://livescratchapi.waakul.com";
   }
+
+  return "https://livescratchapi.waakul.com";
 };
 
-loadUrl();
+let apiUrl;
+
+const loadUrl = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      apiUrl = await getApiUrl();
+      resolve(); // Ensure this is final
+    } catch (error) {
+      console.error("Failed to get the API URL:", error);
+      apiUrl = "https://livescratchapi.waakul.com";
+      reject(error); // Only reject on actual failure
+    }
+  });
+};
+
+loadUrl().then(()=>{
+  backgroundScript();
+})
+.catch((error)=>{
+  console.error('Error loading server URL', error)
+})
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.meta === "getAPI-URL") {
@@ -43,24 +69,26 @@ let uname = "*";
 let upk = undefined;
 
 chrome.runtime.onInstalled.addListener(async (details) => {
-  console.log(await (await chrome.storage.local.get("apiUpdateReload"))["apiUpdateReload"]);
-  if (await (await chrome.storage.local.get("apiUpdateReload"))["apiUpdateReload"]) {chrome.storage.local.set({"apiUpdateReload": false}); return}
-  if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
-    chrome.tabs.create({ url: 'https://ko-fi.com/waakul' })
-    chrome.tabs.create({ url: 'https://livescratch.waakul.com' })
+  let { apiUpdateReload } = await chrome.storage.local.get("apiUpdateReload"); // Destructure the result
+  apiUpdateReload = await { apiUpdateReload }["apiUpdateReload"]
+  console.log(apiUpdateReload)
 
-  } else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
-    chrome.tabs.create({url: 'https://livescratch.waakul.com' /*'https://livescratch.waakul.com/new-release'*/})
+  if (!!apiUpdateReload) {
+    await chrome.storage.local.set({ "apiUpdateReload": false });
+    return;
   }
-})
+
+  if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+    chrome.tabs.create({ url: 'https://ko-fi.com/waakul' });
+    chrome.tabs.create({ url: 'https://livescratch.waakul.com' });
+  } else if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
+    chrome.tabs.create({ url: 'https://livescratch.waakul.com' /* 'https://livescratch.waakul.com/new-release' */ });
+  }
+});
 
 
 const LIVESCRATCH = {}
 async function backgroundScript() {
-
-  importScripts('background/socket.io.js');
-  importScripts('background/livescratchProject.js');
-  importScripts('background/auth.js');
 
   // user info
   // let username = 'ilhp10'
@@ -110,7 +138,7 @@ async function backgroundScript() {
 
   const newProjectPage = 'https://scratch.mit.edu/create'
   async function prepRedirect(tab) {
-    if (uname == '*') { return false }
+    if (uname == '*') { return false }importScripts('background/socket.io.js', 'background/livescratchProject.js', 'background/auth.js');
     let id = getProjectId(tab.url)
 
 
@@ -490,5 +518,3 @@ async function backgroundScript() {
     }
   })
 }
-
-backgroundScript()

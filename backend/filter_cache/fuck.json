@@ -1,0 +1,8 @@
+{
+  "isBad": true,
+  "badWordsTotal": 1,
+  "badWordsList": [
+    "fuck"
+  ],
+  "censoredContent": "****"
+}
