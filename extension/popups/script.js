@@ -41,42 +41,6 @@ function validateUrl(input) {
     return regex.test(value);
 }
 
-document.querySelector("input#custom-server").addEventListener("change", function () {
-    const input = document.querySelector("input#custom-server");
-    const serverUrlField = document.getElementById("server-url");
-    
-    const value = input.checked;
-    console.log(value)
-    chrome.storage.local.set({ "custom-server": value });
-    serverUrlField.disabled = !value;
-
-    if (serverUrlField.value!=="https://livescratchapi.waakul.com") {
-        chrome.storage.local.set({'apiUpdateReload': true}).then(()=>{
-            chrome.runtime.reload();
-        });
-    }
-});
-
-document.querySelector("input#server-url").addEventListener("change", function () {
-    value = document.querySelector("input#server-url").value;
-    if (!value) {
-        document.querySelector("input#server-url").value = "https://livescratchapi.waakul.com";
-        chrome.storage.local.set({"server-url": "https://livescratchapi.waakul.com"});
-    } else {
-        valid = validateUrl(document.querySelector("input#server-url"));
-        console.log(valid)
-        if (valid) {
-            chrome.storage.local.set({"server-url": value});
-        } else {
-            document.querySelector("input#server-url").value = "https://livescratchapi.waakul.com";
-            chrome.storage.local.set({"server-url": "https://livescratchapi.waakul.com"});
-        }
-    }
-    chrome.storage.local.set({'apiUpdateReload': true}).then(()=>{
-        chrome.runtime.reload();
-    });
-})
-
 document.querySelectorAll("button.credit").forEach(function(credit){
     credit.onclick = () => {
         let username = credit.querySelector(".credit-name").innerText;
@@ -90,6 +54,66 @@ chrome.runtime.sendMessage({ meta: "getUsernamePlus" }, function (info) {
     let username = info.uname
     let token = info.currentBlToken
     let apiUrl = info.apiUrl
+
+    document.querySelector("input#custom-server").addEventListener("change", function () {
+        const input = document.querySelector("input#custom-server");
+        const serverUrlField = document.getElementById("server-url");
+        
+        const value = input.checked;
+        console.log(value)
+        chrome.storage.local.set({ "custom-server": value });
+        serverUrlField.disabled = !value;
+    
+        if (serverUrlField.value!=="https://livescratchapi.waakul.com") {
+            chrome.runtime.sendMessage({meta: 'clearCrntToken'}, function(){
+                chrome.storage.local.remove(
+                    [`blToken.${username}`, 'dontShowVerifyError', 'uname', 'upk', 'verifyServerConnErr'], 
+                    function () {
+                        if (chrome.runtime.lastError) {
+                            console.error('Error removing keys:', chrome.runtime.lastError);
+                        } else {
+                            console.log('Keys successfully removed.');
+                            chrome.storage.local.set({ 'apiUpdateReload': true }, function() {
+                                chrome.runtime.reload();
+                            });
+                        }
+                    }
+                );
+            });        
+        }
+    });
+    
+    document.querySelector("input#server-url").addEventListener("change", function () {
+        value = document.querySelector("input#server-url").value;
+        if (!value) {
+            document.querySelector("input#server-url").value = "https://livescratchapi.waakul.com";
+            chrome.storage.local.set({"server-url": "https://livescratchapi.waakul.com"});
+        } else {
+            valid = validateUrl(document.querySelector("input#server-url"));
+            console.log(valid)
+            if (valid) {
+                chrome.storage.local.set({"server-url": value});
+            } else {
+                document.querySelector("input#server-url").value = "https://livescratchapi.waakul.com";
+                chrome.storage.local.set({"server-url": "https://livescratchapi.waakul.com"});
+            }
+        }
+        chrome.sendMessage({meta: 'clearCrntToken'}, function(){
+            chrome.storage.local.remove(
+                [`blToken.${username}`, 'dontShowVerifyError', 'uname', 'upk', 'verifyServerConnErr'], 
+                function () {
+                    if (chrome.runtime.lastError) {
+                        console.error('Error removing keys:', chrome.runtime.lastError);
+                    } else {
+                        console.log('Keys successfully removed.');
+                        chrome.storage.local.set({ 'apiUpdateReload': true }, function() {
+                            chrome.runtime.reload();
+                        });
+                    }
+                }
+            );
+        });
+    })
 
     function setSignedin(info) {
 

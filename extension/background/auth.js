@@ -131,6 +131,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             recordVerifyError(e)
             endVerifying(false)
         }
+    } else if (request.meta == 'clearCrntToken') {
+        await clearCurrentBlToken();
+        sendResponse('success');
     }
 })();
     return true;
