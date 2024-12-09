@@ -1,3 +1,8 @@
+chrome.storage.local.get('theme', (data) => {
+    const savedTheme = (data.theme || 'light') + '-mode';
+    document.querySelector('body').classList.replace('light-mode', savedTheme);
+});
+
 var version = chrome.runtime.getManifest().version_name;
 document.querySelector('#version').innerHTML = 'v'+version;
 
@@ -20,6 +25,15 @@ document.getElementById("server-url").defaultValue = "https://livescratchapi.waa
         document.getElementById("server-url").value = serverUrlValue || "https://livescratchapi.waakul.com";
     })()
 }
+
+document.getElementById("switch-theme").addEventListener('click', function(){
+    chrome.storage.local.get('theme', (data) => {
+        let theme = data["theme"] || 'light';
+        let newTheme = theme == 'light' ? 'dark' : 'light';
+        chrome.storage.local.set({'theme': newTheme})
+        document.querySelector('body').classList.replace(`${theme}-mode`, `${newTheme}-mode`);
+    });
+});
 
 let settingsDropdown = false;
 document.getElementById("settings").style.display = settingsDropdown ? "flex" : "none";

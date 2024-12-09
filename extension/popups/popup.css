@@ -64,7 +64,7 @@ header #switch-theme {
   height: 31.2px;
   position: absolute;
   right: 0;
-  padding: 18px;
+  padding: 16.5px;
 }
 
 #contents {
@@ -483,4 +483,49 @@ hr {
 
 #settings-dropdown {
   cursor: pointer;
+}
+
+body.dark-mode *, body.dark-mode{
+  --BG: linear-gradient(147deg, #204635 -9.97%, #25446D 134.99%);
+  --Text: #FFF;
+  --Text-Solid: #FFF;
+  --Supplementary: rgba(255, 255, 255, 0.14);
+  --Sub: rgba(255, 255, 255, 0.337);
+  --Sub-Semi: rgba(255, 255, 255, 0.1);
+  --button-large-stroke: rgba(255, 255, 255, 0.31);
+  --button-large: linear-gradient(115deg, #4794F6 -12.84%, #55B488 122.07%);
+  --switch-enabled: linear-gradient(116deg, #56B48B 0%, #55AAB5 78.39%);
+}
+
+body.dark-mode #credits .credit, #links a {
+  background-color: var(--Supplementary);
+  border-color: var(--Supplementary);
+}
+
+body.light-mode *, body.light-mode{
+  --BG: linear-gradient(147deg, #E2FFE2 -9.97%, #D8E8FF 134.99%);
+  --Text: #2c2c2c;
+  --Text-Solid: #000000;
+  --Supplementary: rgba(255, 255, 255, 0.29);
+  --Sub: rgba(255, 255, 255, 0.611);
+  --Sub-Semi: rgba(255, 255, 255, 0.4);
+  --button-large-stroke: rgba(255, 255, 255, 0.58);
+  --button-large: linear-gradient(115deg, #4A9AFF -12.84%, #57B78A 122.07%);
+  --switch-enabled: linear-gradient(116deg, #56B48B 0%, #55AAB5 78.39%);
+}
+
+body.light-mode #link-uptime img {
+  filter: brightness(0.7);
+}
+
+body.light-mode #switch-theme {
+  background-image: url("../img/icons/light-switch.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+body.dark-mode #switch-theme {
+  background-image: url("../img/icons/dark-switch.svg");
+  background-repeat: no-repeat;
+  background-position: center;
 }
