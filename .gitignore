@@ -5,4 +5,3 @@
 backend/storage
 /debug/
 backend/.env
-backend/filter_cache
