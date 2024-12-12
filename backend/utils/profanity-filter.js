@@ -1,10 +1,36 @@
-import axios from 'axios';
+import { ProfanityEngine } from '@coffeeandfun/google-profanity-words';
+import fs from 'fs';
+import path from 'path';
 
 export class Filter {
-    constructor() {
-        this.apiUserId = process.env.NEUTRINOAPI_USERID; // Your NeutrinoAPI user ID
-        this.apiKey = process.env.NEUTRINOAPI_KEY; // Your NeutrinoAPI key
-        this.catalog = 'strict'; // Use the "strict" catalog for filtering
+    constructor(language = 'en') {
+        this.profanityEngine = new ProfanityEngine({ language }); // Initialize with specified language
+        this.leetspeakMap = {};
+        this.loadLeetspeakMap();
+    }
+
+    /**
+     * Load the leetspeak map from the JSON file.
+     */
+    loadLeetspeakMap() {
+        try {
+            const filePath = path.resolve(process.cwd(), 'utils', '_leetspeakMap.json'); // Adjust path as needed
+            const data = fs.readFileSync(filePath, 'utf-8'); // Synchronously read the JSON file
+            this.leetspeakMap = JSON.parse(data); // Parse and assign to the map
+            console.log('Leetspeak map loaded successfully:', this.leetspeakMap);
+        } catch (error) {
+            console.error('Error loading leetspeak map:', error.message);
+            throw new Error('Failed to load leetspeak map');
+        }
+    }    
+
+    /**
+     * Normalize text by converting leetspeak to plain text.
+     * @param {string} text - Input text to normalize.
+     * @returns {string} - Normalized text.
+     */
+    normalizeLeetspeak(text) {
+        return text.replace(/[@$3107!5]/g, char => this.leetspeakMap[char] || char);
     }
 
     /**
@@ -14,29 +40,35 @@ export class Filter {
      */
     async checkContent(content) {
         try {
-            const response = await axios.post('https://neutrinoapi.net/bad-word-filter', null, {
-                headers: {
-                    'User-ID': this.apiUserId,
-                    'API-Key': this.apiKey
-                },
-                params: {
-                    'catalog': this.catalog, // The strict catalog
-                    'censor-character': '*', // Character to replace bad words
-                    'content': content // The input content to analyze
-                }
-            });
+            // Normalize content to handle leetspeak
+            const normalizedContent = this.normalizeLeetspeak(content);
 
-            const data = response.data;
+            // Check if the content contains curse words
+            const hasCurseWords = await this.profanityEngine.hasCurseWords(normalizedContent);
+
+            // Retrieve all bad words from the package (static list)
+            const badWordsList = hasCurseWords
+                ? (await this.profanityEngine.all()).filter(word =>
+                    new RegExp(`\\b${word}\\b`, 'i').test(normalizedContent)
+                )
+                : [];
+
+            // Generate censored content
+            const censoredContent = badWordsList.reduce(
+                (censored, word) =>
+                    censored.replace(new RegExp(`\\b${word}\\b`, 'gi'), '*'.repeat(word.length)),
+                normalizedContent
+            );
 
             return {
-                isBad: data['is-bad'], // Does the content contain bad words?
-                badWordsTotal: data['bad-words-total'], // Total number of bad words found
-                badWordsList: data['bad-words-list'], // Array of detected bad words
-                censoredContent: data['censored-content'] // The censored content
+                isBad: hasCurseWords,
+                badWordsTotal: badWordsList.length,
+                badWordsList,
+                censoredContent
             };
         } catch (error) {
-            console.error('Error checking content:', error.response?.data || error.message);
-            throw new Error('Failed to process content with NeutrinoAPI');
+            console.error('Error checking content:', error.message);
+            throw new Error('Failed to process content with ProfanityEngine');
         }
     }
 
