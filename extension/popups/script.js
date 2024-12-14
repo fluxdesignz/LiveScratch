@@ -26,7 +26,7 @@ document.getElementById("server-url").defaultValue = "https://livescratchapi.waa
     })()
 }
 
-document.getElementById("switch-theme").addEventListener('click', function(){
+document.getElementById("switch-theme")?.addEventListener('click', function(){
     chrome.storage.local.get('theme', (data) => {
         let theme = data["theme"] || 'light';
         let newTheme = theme == 'light' ? 'dark' : 'light';
@@ -37,13 +37,13 @@ document.getElementById("switch-theme").addEventListener('click', function(){
 
 let settingsDropdown = false;
 document.getElementById("settings").style.display = settingsDropdown ? "flex" : "none";
-document.getElementById("settings-dropdown").addEventListener("click", function() {
+document.getElementById("settings-dropdown")?.addEventListener("click", function() {
     settingsDropdown = !settingsDropdown;
     console.log(settingsDropdown)
     document.getElementById("settings").style.display = settingsDropdown ? "flex" : "none";
 });
 
-document.querySelector("button#projects").addEventListener("click", function () {
+document.querySelector("button#projects")?.addEventListener("click", function () {
     chrome.tabs.create({
         url: "/projects/index.html"
     })
@@ -69,7 +69,7 @@ chrome.runtime.sendMessage({ meta: "getUsernamePlus" }, function (info) {
     let token = info.currentBlToken
     let apiUrl = info.apiUrl
 
-    document.querySelector("input#custom-server").addEventListener("change", function () {
+    document.querySelector("input#custom-server")?.addEventListener("change", function () {
         const input = document.querySelector("input#custom-server");
         const serverUrlField = document.getElementById("server-url");
         
@@ -97,7 +97,7 @@ chrome.runtime.sendMessage({ meta: "getUsernamePlus" }, function (info) {
         }
     });
     
-    document.querySelector("input#server-url").addEventListener("change", function () {
+    document.querySelector("input#server-url")?.addEventListener("change", function () {
         value = document.querySelector("input#server-url").value;
         if (!value) {
             document.querySelector("input#server-url").value = "https://livescratchapi.waakul.com";
@@ -185,14 +185,20 @@ chrome.runtime.sendMessage({ meta: "getUsernamePlus" }, function (info) {
         document.querySelector('#friends').appendChild(item)
     }
 
-    function addFriend(name) {
+    async function addFriend(name) {
         if (name.toLowerCase() in alreadyAdded) { return }
         if (name.toLowerCase() == username.toLowerCase()) { return }
         if (!name.trim()) { return }
         if (name.includes(' ')) { return }
         document.querySelector('#add').value = ''
-        addFriendGUI(name)
-        fetch(`${apiUrl}/friends/${username}/${name}`, { method: "POST", headers: { authorization: token } });
+        
+        let response = await fetch(`${apiUrl}/friends/${username}/${name}`, { method: "POST", headers: { authorization: token } });
+        let statusCode = response.status;
+        if (statusCode===200) {
+            addFriendGUI(name);
+        } else {
+            alert("The user you tried to friend doesnt have livescratch!");
+        }
     }
 
     function removeFriend(name) {
@@ -203,7 +209,7 @@ chrome.runtime.sendMessage({ meta: "getUsernamePlus" }, function (info) {
         fetch(`${apiUrl}/friends/${username}/${name}`, { method: "DELETE", headers: { authorization: token } });
     }
 
-    document.querySelector('#add').addEventListener("keyup", function (event) {
+    document.querySelector('#add')?.addEventListener("keyup", function (event) {
         if (event.keyCode === 13) {
             addFriend(document.querySelector('#add').value)
         }
@@ -232,7 +238,7 @@ chrome.runtime.sendMessage({ meta: "getUsernamePlus" }, function (info) {
         })()
     }
 
-    document.querySelector('#privme').addEventListener('change', (event) => {
+    document.querySelector('#privme')?.addEventListener('change', (event) => {
         let on = event.currentTarget.checked;
 
         fetch(`${apiUrl}/privateMe/${username}/${on}`, {method:'put', headers: { authorization: token },  })
@@ -254,7 +260,7 @@ document.getElementById('link-donate').onclick = () => {
     document.querySelector('#notifs').checked = (await chrome.storage.local.get(['notifs']))?.notifs ?? false
 })();
 
-document.querySelector('#notifs').addEventListener('change', (event) => {
+document.querySelector('#notifs')?.addEventListener('change', (event) => {
     let on = event.currentTarget.checked;
     chrome.storage.local.set({ notifs: on })
     // Permissions must be requested from inside a user gesture, like a button's
@@ -276,14 +282,14 @@ document.querySelector('#notifs').addEventListener('change', (event) => {
     document.querySelector('#badges').checked = !((await chrome.storage.local.get(['badges']))?.badges ?? false)
 })()
 
-document.querySelector('#ping-sounds').addEventListener('change', (event) => {
+document.querySelector('#ping-sounds')?.addEventListener('change', (event) => {
     let on = event.currentTarget.checked;
     chrome.storage.local.set({ ping: on })
     // Permissions must be requested from inside a user gesture, like a button's
     // click handler.
 });
 
-document.querySelector('#badges').addEventListener('change', (event) => {
+document.querySelector('#badges')?.addEventListener('change', (event) => {
     let on = event.currentTarget.checked;
     chrome.storage.local.set({ badges: !on })
 });

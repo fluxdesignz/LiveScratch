@@ -2625,8 +2625,13 @@ async function addCollaborator(username) {
     if(username.toLowerCase() in shareDivs) {return}
     let user = await getUserInfo(username)
     if(!user) {return}
-    addCollaboratorGUI(user)
-    chrome.runtime.sendMessage(exId,{meta:"shareWith",'username':user.username,id:blId,pk:user.pk});
+    chrome.runtime.sendMessage(exId,{meta:"shareWith",'username':user.username,id:blId,pk:user.pk}, function (response) {
+        if (response===200) {
+            addCollaboratorGUI(user)
+        } else {
+            alert("The user you tried to add doesnt have livescratch!");
+        }
+    });
     creditCollabers([...Object.keys(shareDivs)])
 }
 

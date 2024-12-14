@@ -470,10 +470,12 @@ async function backgroundScript() {
               headers: { 'Content-Type': 'application/json', authorization: currentBlToken }
             }).then(res => res.json()).catch(e => ({ err: e.toString() }))))
         } else if (request.meta == 'shareWith') {
-          fetch(`${apiUrl}/share/${request.id}/${request.username}/${uname}?pk=${request.pk}`, {
+          let response = await fetch(`${apiUrl}/share/${request.id}/${request.username}/${uname}?pk=${request.pk}`, {
             method: 'PUT',
             headers: { authorization: currentBlToken }
           })
+          let statusCode = await response.status;
+          sendResponse(statusCode);
         } else if (request.meta == 'unshareWith') {
           fetch(`${apiUrl}/unshare/${request.id}/${request.user}`, {
             method: 'PUT',

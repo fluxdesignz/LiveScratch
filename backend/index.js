@@ -316,6 +316,11 @@ app.get('/',(req,res)=>{
 app.post('/friends/:user/:friend',(req,res)=>{
      if(!authenticate(req.params.user,req.headers.authorization)) {res.send({noauth:true}); return;}
 
+     if (!userManager.userExists(req.params.friend)) {
+          res.sendStatus(404);
+          return;
+     }
+
      userManager.befriend(req.params.user,req.params.friend)
      res.send({ success: 'Successfully friended!' })
 })
@@ -394,8 +399,14 @@ app.put('/share/:id/:to/:from',(req,res)=>{
 
      if(sessionManager.getProject(req.params.id)?.owner == req.params.to) {
           res.send({ err: "Cannot share the project with the owner." })
-          return
+          return;
      }
+
+     if (!userManager.userExists(req.params.to)) {
+          res.sendStatus(404);
+          return;
+     }
+
      sessionManager.shareProject(req.params.id, req.params.to, req.query.pk)
      userManager.getUser(req.params.to).pk = req.query.pk
      userManager.share(req.params.to, req.params.id, req.params.from)
