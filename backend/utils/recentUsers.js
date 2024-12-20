@@ -1,26 +1,26 @@
-import fsp from 'fs/promises'
-import fs from 'fs'
-import cron from 'node-cron'
+import fsp from 'fs/promises';
+import fs from 'fs';
+import cron from 'node-cron';
 import path from 'path';
 
-const recentPath = 'storage/recent.json'
+const recentPath = 'storage/recent.json';
 
 //load from file
-let {recent,recentRealtime,recentShared,popup} = fs.existsSync(recentPath) ? JSON.parse(fs.readFileSync(recentPath)) : {recent:{},recentRealtime:{},recentShared:{},popup:[]}
-if(!recent) {recent = {}}
-if(!recentRealtime) {recentRealtime = {}}
-if(!recentShared) {recentShared = {}}
-if(!popup) {popup = []}
+let {recent,recentRealtime,recentShared,popup} = fs.existsSync(recentPath) ? JSON.parse(fs.readFileSync(recentPath)) : {recent:{},recentRealtime:{},recentShared:{},popup:[]};
+if(!recent) {recent = {};}
+if(!recentRealtime) {recentRealtime = {};}
+if(!recentShared) {recentShared = {};}
+if(!popup) {popup = [];}
 
 const CRON_EXPRESSION = '0 1 * * *'; // every night at 1am
 cron.schedule(CRON_EXPRESSION, async () => {
-    trimRecent()
+    trimRecent();
 },{
     scheduled: true,
-    timezone: "Etc/GMT+3"
-})
+    timezone: 'Etc/GMT+3',
+});
 
-setInterval(saveRecent,1000)
+setInterval(saveRecent,1000);
 
 // save to file
 export async function saveRecent() {
@@ -31,7 +31,7 @@ export async function saveRecent() {
 }
 
 export function recordPopup(username) {
-    username = username?.toLowerCase?.()
+    username = username?.toLowerCase?.();
     let toPush = {u:username,t:Date.now()};
     popup.push(toPush);
 }
@@ -39,23 +39,23 @@ export function countPopup(days) {
     let now = Date.now();
     let millis = days * 1000 * 60 * 60 * 24;
     let count = popup.filter(record=>record.t>now-millis).length;
-    return count
+    return count;
 }
 export function countUniquePopup(days) {
     let now = Date.now();
     let millis = days * 1000 * 60 * 60 * 24;
     let count = new Set(popup.filter(record=>record.t>now-millis).map(record=>record.u)).size;
-    return count
+    return count;
 }
 
 export function addRecent(username,realtime,shared) {
-    username=username?.toLowerCase?.()
-    recent[username] = Date.now()
+    username=username?.toLowerCase?.();
+    recent[username] = Date.now();
     if(realtime) {
-        recentRealtime[username] = Date.now()
+        recentRealtime[username] = Date.now();
     }
     if(shared) {
-        recentShared[username] = Date.now()
+        recentShared[username] = Date.now();
     }
 }
 
@@ -64,15 +64,15 @@ function trimRecent() {
     const DAYS = 30;
 
     let namesToDelete = Object.entries(recent).filter(entry=>(Date.now()-entry[1]>1000*60*60*24*DAYS)).map(entry=>entry[0]);
-    namesToDelete.forEach(name=>{delete recent[name]})
+    namesToDelete.forEach(name=>{delete recent[name];});
     
     let namesToDeleteRealtime = Object.entries(recentRealtime).filter(entry=>(Date.now()-entry[1]>1000*60*60*24*DAYS)).map(entry=>entry[0]);
-    namesToDeleteRealtime.forEach(name=>{delete recentRealtime[name]})
+    namesToDeleteRealtime.forEach(name=>{delete recentRealtime[name];});
 
     let namesToDeleteShared = Object.entries(recentShared).filter(entry=>(Date.now()-entry[1]>1000*60*60*24*DAYS)).map(entry=>entry[0]);
-    namesToDeleteShared.forEach(name=>{delete recentShared[name]})
+    namesToDeleteShared.forEach(name=>{delete recentShared[name];});
 
-    popup = popup.filter(entry=>(Date.now()-entry.t)<1000*60*60*24*DAYS)
+    popup = popup.filter(entry=>(Date.now()-entry.t)<1000*60*60*24*DAYS);
 }
 
 export function countRecentShared(days) {
@@ -92,6 +92,6 @@ export function countRecentBoth(days) {
         all:countRecent(),
         realtime:countRecentRealtime(),
         shared:countRecentShared(),
-    }
+    };
 }
 

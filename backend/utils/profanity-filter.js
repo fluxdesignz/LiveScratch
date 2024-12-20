@@ -49,7 +49,7 @@ export class Filter {
             // Retrieve all bad words from the package (static list)
             const badWordsList = hasCurseWords
                 ? (await this.profanityEngine.all()).filter(word =>
-                    new RegExp(`\\b${word}\\b`, 'i').test(normalizedContent)
+                    new RegExp(`\\b${word}\\b`, 'i').test(normalizedContent),
                 )
                 : [];
 
@@ -57,14 +57,14 @@ export class Filter {
             const censoredContent = badWordsList.reduce(
                 (censored, word) =>
                     censored.replace(new RegExp(`\\b${word}\\b`, 'gi'), '*'.repeat(word.length)),
-                normalizedContent
+                normalizedContent,
             );
 
             return {
                 isBad: hasCurseWords,
                 badWordsTotal: badWordsList.length,
                 badWordsList,
-                censoredContent
+                censoredContent,
             };
         } catch (error) {
             console.error('Error checking content:', error.message);

@@ -5,7 +5,6 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "pm2 start ./ecosystem.config.cjs --watch",
     "start": "pm2 start ./ecosystem.config.cjs",
     "stop": "pm2 stop LiveScratch",
     "delete": "pm2 delete LiveScratch"
@@ -32,6 +31,6 @@
     "socket.io-client": "^4.4.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "eslint": "^9.17.0"
   }
 }
